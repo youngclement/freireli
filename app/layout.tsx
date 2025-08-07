@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WalletProviders } from "@/providers/wallet-provider";
 import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
 import { config } from "@/lib/config";
 import "@/lib/env-validation"; // Import validation để chạy khi app khởi động
@@ -33,11 +34,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <WalletProviders>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-background flex flex-col">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main className="flex-1">
               {children}
             </main>
+            <Footer />
           </div>
           <Toaster />
         </WalletProviders>

@@ -9,11 +9,10 @@ export default function Home() {
   const containerRef = useGsapScroll();
 
   return (
-    <div ref={containerRef} className="min-h-screen">
+    <div ref={containerRef} className="w-full">
       <main>
         <HeroSection />
         <AboutSection />
-
         <ContactSection />
       </main>
     </div>
