@@ -13,7 +13,7 @@ export function Footer() {
                     <div className="space-y-4">
                         <div className="flex items-center space-x-2">
                             <Package className="h-6 w-6 text-primary" />
-                            <span className="font-bold text-lg">Freireli Logistics</span>
+                            <span className="font-normal text-lg font-brand">FREIRELI LOGISTICS</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
                             Hệ thống theo dõi logistics sử dụng công nghệ blockchain để đảm bảo tính minh bạch và bảo mật.
@@ -106,7 +106,7 @@ export function Footer() {
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         {/* Copyright */}
                         <div className="text-sm text-muted-foreground">
-                            © 2025 Freireli Logistics. All rights reserved.
+                            © 2025 <span className="font-normal font-brand">FREIRELI LOGISTICS</span>. All rights reserved.
                         </div>
 
                         {/* Social Links */}

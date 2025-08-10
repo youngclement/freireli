@@ -3,78 +3,141 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Package, Search, Settings, Home, Book } from "lucide-react";
+import { Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useScroll } from "@/hooks/use-scroll";
+import { ModeToggleSimple } from "@/components/theme/mode-toggle-simple";
 
 const navigation = [
-    { name: "Trang chủ", href: "/", icon: Home },
-    { name: "Logistics", href: "/logistics", icon: Package },
-    { name: "Tạo vận đơn", href: "/create", icon: Package },
-    { name: "Tra cứu", href: "/track", icon: Search },
-    { name: "Quản lý", href: "/manage", icon: Settings },
-    { name: "Hướng dẫn", href: "/setup", icon: Book },
+    { name: "Tạo vận đơn", href: "/create" },
+    { name: "Tra cứu", href: "/track" },
+    { name: "Quản lý", href: "/manage" },
+    { name: "Hướng dẫn", href: "/setup" },
 ];
 
 export function Navbar() {
     const pathname = usePathname();
+    const scrolled = useScroll(50);
+    const isHomePage = pathname === "/";
+
+
+    const getNavBackground = () => {
+        if (isHomePage) {
+            return scrolled
+                ? "bg-background/80 backdrop-blur-md border-border/20"
+                : "bg-transparent border-transparent";
+        } else {
+            return scrolled
+                ? "bg-background/80 backdrop-blur-md"
+                : "bg-background";
+        }
+    };
 
     return (
-        <nav className="w-full border-b">
-            <div className="w-full px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex">
-                        <div className="flex-shrink-0 flex items-center">
-                            <Package className="h-8 w-8 text-primary" />
-                            <span className="ml-2 text-xl font-bold">Freireli Logistics</span>
-                        </div>
-                        <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            {navigation.map((item) => {
-                                const Icon = item.icon;
+        <nav className={cn(
+            "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-200",
+            getNavBackground()
+        )}>
+            <div className="w-full max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center h-16 relative">
+                    {/* Left Navigation Pills */}
+                    <div className="flex items-center gap-1.5">
+                        {navigation.slice(0, 2).map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={cn(
+                                        "h-8 px-4 py-2 rounded-full flex justify-center items-center cursor-pointer transition-all text-sm font-normal",
+                                        isActive
+                                            ? "bg-white text-black shadow-sm"
+                                            : (isHomePage && !scrolled
+                                                ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
+                                                : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
+                                    )}
+                                >
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
+                    </div>
+
+                    {/* Center Logo - Absolutely Centered */}
+                    <div className="absolute left-1/2 transform -translate-x-1/2">
+                        <Link href="/" className={cn(
+                            "text-lg font-normal font-brand leading-relaxed transition-colors hover:opacity-80",
+                            isHomePage && !scrolled ? "text-white" : "text-foreground"
+                        )}>
+                            FREIRELI
+                        </Link>
+                    </div>
+
+                    {/* Right Navigation Pills + Actions */}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                        <div className="hidden md:flex items-center gap-1.5">
+                            {navigation.slice(2).map((item) => {
+                                const isActive = pathname === item.href;
                                 return (
                                     <Link
                                         key={item.name}
                                         href={item.href}
                                         className={cn(
-                                            "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium",
-                                            pathname === item.href
-                                                ? "border-primary text-primary"
-                                                : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                                            "h-8 px-4 py-2 rounded-full flex justify-center items-center cursor-pointer transition-all text-sm font-normal",
+                                            isActive
+                                                ? "bg-white text-black shadow-sm"
+                                                : (isHomePage && !scrolled
+                                                    ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
+                                                    : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
                                         )}
                                     >
-                                        <Icon className="h-4 w-4 mr-2" />
                                         {item.name}
                                     </Link>
                                 );
                             })}
                         </div>
-                    </div>
-                    <div className="flex items-center">
+
+                        {/* Dark Mode Toggle with Pill Style */}
+                        <div className={cn(
+                            "h-8 w-8 rounded-full flex justify-center items-center cursor-pointer transition-all",
+                            isHomePage && !scrolled
+                                ? "bg-white/10 border border-white/30 backdrop-blur-sm hover:bg-white/20"
+                                : "bg-gray-100 border border-gray-300 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
+                        )}>
+                            <ModeToggleSimple />
+                        </div>
+
+                        {/* Connect Wallet */}
                         <ConnectButton />
                     </div>
                 </div>
-            </div>
-
-            {/* Mobile navigation */}
+            </div>            {/* Mobile navigation */}
             <div className="sm:hidden">
-                <div className="pt-2 pb-3 space-y-1">
+                <div className="pt-2 pb-3 space-y-2 px-4">
                     {navigation.map((item) => {
-                        const Icon = item.icon;
+                        const isActive = pathname === item.href;
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center pl-3 pr-4 py-2 border-l-4 text-base font-medium",
-                                    pathname === item.href
-                                        ? "bg-primary/10 border-primary text-primary"
-                                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-gray-50 hover:border-gray-300"
+                                    "block w-full h-10 px-4 py-2 rounded-full text-center transition-all text-sm font-normal",
+                                    isActive
+                                        ? "bg-white text-black shadow-sm"
+                                        : (isHomePage && !scrolled
+                                            ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
+                                            : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
                                 )}
                             >
-                                <Icon className="h-4 w-4 mr-3" />
                                 {item.name}
                             </Link>
                         );
                     })}
+
+                    {/* Mobile Connect Wallet */}
+                    <div className="pt-2">
+                        <ConnectButton />
+                    </div>
                 </div>
             </div>
         </nav>
