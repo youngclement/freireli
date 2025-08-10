@@ -11,7 +11,7 @@ export default function HeroSection() {
             {/* Main Background with Parallax */}
             <div ref={backgroundRef} className="absolute inset-0">
                 <Image
-                    src="/images/hero-img.jpg"
+                    src="/images/hero-img-2.png"
                     alt="Logistics Background"
                     fill
                     className="object-cover rounded-bl-2xl rounded-br-2xl"
@@ -31,7 +31,7 @@ export default function HeroSection() {
 
             {/* Copyright */}
             <div className="absolute right-4 md:right-[98px] top-[90.17px] text-right text-white text-[10.09px] font-normal leading-none">
-                © 2024
+                © 2025
             </div>
 
             {/* Map Points distributed across the hero section */}
