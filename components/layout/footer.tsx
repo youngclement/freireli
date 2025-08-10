@@ -16,7 +16,7 @@ export function Footer() {
                             <span className="font-normal text-lg font-brand">FREIRELI LOGISTICS</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            Hệ thống theo dõi logistics sử dụng công nghệ blockchain để đảm bảo tính minh bạch và bảo mật.
+                            Blockchain-powered logistics tracking system ensuring transparency and security for global supply chain management.
                         </p>
                     </div>
 
@@ -31,17 +31,17 @@ export function Footer() {
                             </li>
                             <li>
                                 <Link href="/create" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Tạo vận đơn
+                                    Create Shipment
                                 </Link>
                             </li>
                             <li>
                                 <Link href="/track" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Tra cứu
+                                    Track
                                 </Link>
                             </li>
                             <li>
                                 <Link href="/manage" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Quản lý
+                                    Manage
                                 </Link>
                             </li>
                         </ul>
@@ -49,21 +49,21 @@ export function Footer() {
 
                     {/* Support */}
                     <div>
-                        <h3 className="font-semibold mb-4">Hỗ trợ</h3>
+                        <h3 className="font-semibold mb-4">Support</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Hướng dẫn cài đặt
+                                    Setup Guide
                                 </Link>
                             </li>
                             <li>
                                 <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Tài liệu API
+                                    API Documentation
                                 </a>
                             </li>
                             <li>
                                 <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    Liên hệ hỗ trợ
+                                    Contact Support
                                 </a>
                             </li>
                             <li>
@@ -79,7 +79,7 @@ export function Footer() {
                         <h3 className="font-semibold mb-4">Network</h3>
                         <ul className="space-y-2 text-sm">
                             <li className="text-muted-foreground">
-                                <span className="font-medium">Mạng:</span> Kairos Testnet
+                                <span className="font-medium">Network:</span> Kairos Testnet
                             </li>
                             <li className="text-muted-foreground">
                                 <span className="font-medium">Chain ID:</span> {config.network.kairos.chainId}

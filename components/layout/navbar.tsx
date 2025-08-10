@@ -9,10 +9,10 @@ import { useScroll } from "@/hooks/use-scroll";
 import { ModeToggleSimple } from "@/components/theme/mode-toggle-simple";
 
 const navigation = [
-    { name: "Tạo vận đơn", href: "/create" },
-    { name: "Tra cứu", href: "/track" },
-    { name: "Quản lý", href: "/manage" },
-    { name: "Hướng dẫn", href: "/setup" },
+    { name: "Create Shipment", href: "/create" },
+    { name: "Track", href: "/track" },
+    { name: "Manage", href: "/manage" },
+
 ];
 
 export function Navbar() {
@@ -24,12 +24,12 @@ export function Navbar() {
     const getNavBackground = () => {
         if (isHomePage) {
             return scrolled
-                ? "bg-background/80 backdrop-blur-md border-border/20"
+                ? "bg-white/10 backdrop-blur-lg  shadow-lg"
                 : "bg-transparent border-transparent";
         } else {
             return scrolled
-                ? "bg-background/80 backdrop-blur-md"
-                : "bg-background";
+                ? "bg-background/20 backdrop-blur-lg border border-border/30 shadow-lg"
+                : "bg-background/10 backdrop-blur-sm";
         }
     };
 
@@ -52,7 +52,7 @@ export function Navbar() {
                                         "h-8 px-4 py-2 rounded-full flex justify-center items-center cursor-pointer transition-all text-sm font-normal",
                                         isActive
                                             ? "bg-white text-black shadow-sm"
-                                            : (isHomePage && !scrolled
+                                            : (isHomePage
                                                 ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
                                                 : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
                                     )}
@@ -67,7 +67,7 @@ export function Navbar() {
                     <div className="absolute left-1/2 transform -translate-x-1/2">
                         <Link href="/" className={cn(
                             "text-lg font-normal font-brand leading-relaxed transition-colors hover:opacity-80",
-                            isHomePage && !scrolled ? "text-white" : "text-foreground"
+                            isHomePage ? "text-white" : "text-foreground"
                         )}>
                             FREIRELI
                         </Link>
@@ -86,7 +86,7 @@ export function Navbar() {
                                             "h-8 px-4 py-2 rounded-full flex justify-center items-center cursor-pointer transition-all text-sm font-normal",
                                             isActive
                                                 ? "bg-white text-black shadow-sm"
-                                                : (isHomePage && !scrolled
+                                                : (isHomePage
                                                     ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
                                                     : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
                                         )}
@@ -100,9 +100,9 @@ export function Navbar() {
                         {/* Dark Mode Toggle with Pill Style */}
                         <div className={cn(
                             "h-8 w-8 rounded-full flex justify-center items-center cursor-pointer transition-all",
-                            isHomePage && !scrolled
-                                ? "bg-white/10 border border-white/30 backdrop-blur-sm hover:bg-white/20"
-                                : "bg-gray-100 border border-gray-300 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
+                            isHomePage
+                                ? "bg-white/10 backdrop-blur-sm hover:bg-white/20"
+                                : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                         )}>
                             <ModeToggleSimple />
                         </div>
@@ -124,7 +124,7 @@ export function Navbar() {
                                     "block w-full h-10 px-4 py-2 rounded-full text-center transition-all text-sm font-normal",
                                     isActive
                                         ? "bg-white text-black shadow-sm"
-                                        : (isHomePage && !scrolled
+                                        : (isHomePage
                                             ? "bg-white/10 border border-white/30 backdrop-blur-sm text-white hover:bg-white/20"
                                             : "bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700")
                                 )}
