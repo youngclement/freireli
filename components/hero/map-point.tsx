@@ -179,10 +179,10 @@ export function MapPoint({
                     style={getQuotePositionAtLineEnd()}
                 >
                     <div className="w-72 p-3 bg-white/10 rounded-lg border border-white/20 backdrop-blur-md inline-flex flex-col justify-start items-start gap-[3px] overflow-hidden shadow-2xl shadow-black/20">
-                        <div className="justify-center text-white text-[14px] font-semibold font-['Instrument_Sans'] leading-[18px]">
+                        <div className="justify-center text-white text-[14px] font-semibold font-primary leading-[18px]">
                             {quote.title}
                         </div>
-                        <div className="self-stretch justify-center text-white/80 text-[11px] font-normal font-['Instrument_Sans'] leading-[14px]">
+                        <div className="self-stretch justify-center text-white/80 text-[11px] font-normal font-primary leading-[14px]">
                             {quote.description}
                         </div>
                     </div>
