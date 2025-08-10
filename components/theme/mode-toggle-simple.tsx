@@ -15,7 +15,7 @@ export function ModeToggleSimple() {
 
     if (!mounted) {
         return (
-            <Button variant="outline" size="icon">
+            <Button variant="ghost" size="icon" className="h-6 w-6 border-0 bg-transparent hover:bg-transparent">
                 <Sun className="h-[1.2rem] w-[1.2rem]" />
                 <span className="sr-only">Toggle theme</span>
             </Button>
@@ -24,8 +24,9 @@ export function ModeToggleSimple() {
 
     return (
         <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
+            className="h-6 w-6 border-0 bg-transparent hover:bg-transparent"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
         >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

@@ -14,11 +14,11 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const createShipmentSchema = z.object({
-    shipmentCode: z.string().min(1, "Mã vận đơn là bắt buộc"),
-    productName: z.string().min(1, "Tên sản phẩm là bắt buộc"),
-    origin: z.string().min(1, "Điểm xuất phát là bắt buộc"),
-    destination: z.string().min(1, "Điểm đến là bắt buộc"),
-    carrier: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Địa chỉ ví không hợp lệ"),
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    productName: z.string().min(1, "Product name is required"),
+    origin: z.string().min(1, "Origin is required"),
+    destination: z.string().min(1, "Destination is required"),
+    carrier: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address"),
 });
 
 type CreateShipmentFormData = z.infer<typeof createShipmentSchema>;
