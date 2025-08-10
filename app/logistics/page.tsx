@@ -51,8 +51,8 @@ export default function LogisticsPage() {
             <div className="space-y-12 px-4 py-8 max-w-7xl mx-auto">
                 {/* Hero Section */}
                 <div className="text-center space-y-4">
-                    <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-                        Freireli Logistics
+                    <h1 className="text-4xl font-normal tracking-tight text-foreground sm:text-6xl font-brand">
+                        FREIRELI LOGISTICS
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                         Hệ thống theo dõi logistics sử dụng công nghệ blockchain để đảm bảo tính minh bạch và bảo mật

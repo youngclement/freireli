@@ -190,6 +190,33 @@ NEXT_PUBLIC_FAUCET_URL=${config.external.faucetUrl}`}
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* UI Features */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tính Năng Giao Diện</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 className="font-medium mb-2">Dark/Light Mode</h4>
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                    <li>• Chuyển đổi theme dark/light</li>
+                                    <li>• Tự động theo system theme</li>
+                                    <li>• Toggle button trên header</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-medium mb-2">Responsive Design</h4>
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                    <li>• Tương thích mobile</li>
+                                    <li>• Layout linh hoạt</li>
+                                    <li>• Navigation thu gọn</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
