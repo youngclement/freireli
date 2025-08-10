@@ -11,9 +11,9 @@ export default function SetupPage() {
         <div className="w-full py-8 px-4">
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="text-center space-y-4">
-                    <h1 className="text-3xl font-bold">Hướng Dẫn Cài Đặt</h1>
+                    <h1 className="text-3xl font-bold">Setup Guide</h1>
                     <p className="text-muted-foreground">
-                        Các bước cần thiết để sử dụng hệ thống {config.app.name}
+                        Required steps to use {config.app.name} system
                     </p>
                 </div>
 
@@ -21,13 +21,13 @@ export default function SetupPage() {
                 <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                        <strong>Quan trọng:</strong> Bạn cần cập nhật các environment variables trong file <code>.env.local</code> sau khi deploy smart contract lên Kairos testnet.
+                        <strong>Important:</strong> You need to update environment variables in <code>.env.local</code> file after deploying smart contract to Kairos testnet.
                     </AlertDescription>
                 </Alert>
 
                 {/* Current Configuration */}
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold">Cấu Hình Hiện Tại</h2>
+                    <h2 className="text-2xl font-bold">Current Configuration</h2>
                     <ConfigInfo />
                 </div>
 
@@ -37,13 +37,13 @@ export default function SetupPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Badge variant="outline">1</Badge>
-                                Cài Đặt Ví MetaMask
+                                Install MetaMask Wallet
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p>Cài đặt MetaMask và thêm mạng Kairos Testnet:</p>
+                            <p>Install MetaMask and add Kairos Testnet network:</p>
                             <div className="bg-muted p-4 rounded-lg">
-                                <p className="font-medium mb-2">Thông tin mạng Kairos Testnet:</p>
+                                <p className="font-medium mb-2">Kairos Testnet Network Information:</p>
                                 <ul className="space-y-1 text-sm">
                                     <li><strong>Network Name:</strong> Kairos Testnet</li>
                                     <li><strong>RPC URL:</strong> {config.network.kairos.rpcUrl}</li>
@@ -59,11 +59,11 @@ export default function SetupPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Badge variant="outline">2</Badge>
-                                Lấy Test KLAY
+                                Get Test KLAY
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Truy cập Kairos Testnet Faucet để lấy test KLAY:</p>
+                            <p>Access Kairos Testnet Faucet to get test KLAY:</p>
                             <div className="bg-muted p-4 rounded-lg mt-2 flex items-center justify-between">
                                 <code>{config.external.faucetUrl}</code>
                                 <Link
@@ -72,7 +72,7 @@ export default function SetupPage() {
                                     rel="noopener noreferrer"
                                     className="ml-2 text-primary hover:underline flex items-center gap-1"
                                 >
-                                    Mở <ExternalLink className="h-3 w-3" />
+                                    Open <ExternalLink className="h-3 w-3" />
                                 </Link>
                             </div>
                         </CardContent>

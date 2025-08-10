@@ -7,39 +7,39 @@ export default function LogisticsPage() {
     const features = [
         {
             icon: Shield,
-            title: "Bảo mật Blockchain",
-            description: "Dữ liệu được bảo mật và không thể thay đổi trên blockchain Kairos"
+            title: "Blockchain Security",
+            description: "Data secured and immutable on Kairos blockchain"
         },
         {
             icon: Clock,
-            title: "Theo dõi Realtime",
-            description: "Cập nhật trạng thái vận đơn trong thời gian thực"
+            title: "Real-time Tracking",
+            description: "Real-time shipment status updates"
         },
         {
             icon: Users,
-            title: "Đa người dùng",
-            description: "Hỗ trợ nhiều nhà vận chuyển và người gửi hàng"
+            title: "Multi-user Support",
+            description: "Support for multiple carriers and shippers"
         }
     ];
 
     const quickActions = [
         {
-            title: "Tạo Vận Đơn",
-            description: "Tạo vận đơn mới trong hệ thống",
+            title: "Create Shipment",
+            description: "Create new shipment in the system",
             icon: Package,
             href: "/create",
             color: "bg-blue-500"
         },
         {
-            title: "Tra Cứu Vận Đơn",
-            description: "Theo dõi tình trạng giao hàng",
+            title: "Track Shipment",
+            description: "Track delivery status",
             icon: Search,
             href: "/track",
             color: "bg-green-500"
         },
         {
-            title: "Quản Lý Vận Đơn",
-            description: "Cập nhật trạng thái và sự kiện",
+            title: "Manage Shipments",
+            description: "Update status and events",
             icon: Settings,
             href: "/manage",
             color: "bg-orange-500"
@@ -55,19 +55,19 @@ export default function LogisticsPage() {
                         FREIRELI LOGISTICS
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Hệ thống theo dõi logistics sử dụng công nghệ blockchain để đảm bảo tính minh bạch và bảo mật
+                        Blockchain-powered logistics tracking system ensuring transparency and security for global supply chain management
                     </p>
                     <div className="flex justify-center gap-4 mt-8">
                         <Link href="/create">
                             <Button size="lg" className="gap-2">
                                 <Package className="h-5 w-5" />
-                                Tạo Vận Đơn
+                                Create Shipment
                             </Button>
                         </Link>
                         <Link href="/track">
                             <Button variant="outline" size="lg" className="gap-2">
                                 <Search className="h-5 w-5" />
-                                Tra Cứu Vận Đơn
+                                Track Shipment
                             </Button>
                         </Link>
                     </div>
@@ -96,9 +96,9 @@ export default function LogisticsPage() {
                 {/* Features */}
                 <div className="space-y-8">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold">Tính Năng Nổi Bật</h2>
+                        <h2 className="text-3xl font-bold">Key Features</h2>
                         <p className="text-muted-foreground mt-2">
-                            Những ưu điểm vượt trội của hệ thống logistics blockchain
+                            Outstanding advantages of the blockchain logistics system
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
