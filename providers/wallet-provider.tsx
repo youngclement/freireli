@@ -13,6 +13,7 @@ import { kairos } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, http } from "wagmi";
 import { useTheme } from "next-themes";
+import NoSSR from "@/components/no-ssr";
 import { config as appConfig } from "@/lib/config";
 import "@rainbow-me/rainbowkit/styles.css";
 
@@ -32,18 +33,31 @@ const wagmiConfig = getDefaultConfig({
     transports: {
         [kairos.id]: http(appConfig.network.kairos.rpcUrl),
     },
-    ssr: true,
+    ssr: true, // Enable SSR support
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // Disable retries on server side to avoid hydration issues
+            retry: (failureCount, error) => {
+                if (typeof window === 'undefined') return false;
+                return failureCount < 3;
+            },
+        },
+    },
+});
 
 export function WalletProviders({ children }: { children: React.ReactNode }) {
-    const [mounted, setMounted] = React.useState(false);
-    const { resolvedTheme } = useTheme();
+    return (
+        <NoSSR fallback={<div className="min-h-screen bg-background" />}>
+            <WalletProvidersInner>{children}</WalletProvidersInner>
+        </NoSSR>
+    );
+}
 
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
+function WalletProvidersInner({ children }: { children: React.ReactNode }) {
+    const { resolvedTheme } = useTheme();
 
     const rainbowKitTheme = resolvedTheme === 'dark'
         ? darkTheme({
@@ -66,7 +80,7 @@ export function WalletProviders({ children }: { children: React.ReactNode }) {
                     theme={rainbowKitTheme}
                     locale="en-US"
                 >
-                    {mounted && children}
+                    {children}
                 </RainbowKitProvider>
             </QueryClientProvider>
         </WagmiProvider>
