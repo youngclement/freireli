@@ -62,6 +62,7 @@ export interface CreateShipmentForm {
   origin: string;
   destination: string;
   carrier: string;
+  depositAmount?: string; // Số Ether để deposit (optional)
 }
 
 export interface AddEventForm {

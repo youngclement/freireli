@@ -12,7 +12,7 @@ import {
   ShipmentEvent,
 } from "../lib/contracts";
 
-// Hook để tạo shipment mới
+// Hook để tạo shipment mới với escrow deposit
 export function useCreateShipment() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
@@ -21,7 +21,8 @@ export function useCreateShipment() {
     productName: string,
     origin: string,
     destination: string,
-    carrier: string
+    carrier: string,
+    depositAmount?: string // Số Ether để deposit (dạng string, ví dụ: "0.2")
   ) => {
     writeContract({
       address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
@@ -34,6 +35,7 @@ export function useCreateShipment() {
         destination,
         carrier as `0x${string}`,
       ],
+      value: depositAmount ? parseEther(depositAmount) : undefined,
     });
   };
 
@@ -225,4 +227,25 @@ export function useGetStatusHistory(shipmentCode?: string) {
       enabled: !!shipmentCode,
     },
   });
+}
+
+// Hook để kiểm tra xem escrow đã được release chưa
+export function useIsEscrowReleased(shipmentCode?: string) {
+  const { data: shipment } = useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "getShipment",
+    args: shipmentCode ? [shipmentCode] : undefined,
+    query: {
+      enabled: !!shipmentCode,
+    },
+  });
+
+  const shipmentData = shipment as Shipment | undefined;
+  
+  return {
+    isReleased: shipmentData?.escrowReleased || false,
+    isRefunded: shipmentData?.escrowRefunded || false,
+    depositAmount: shipmentData?.depositAmount || BigInt(0),
+  };
 }

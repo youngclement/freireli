@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useGetShipment, useGetShipmentEvents } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
+import { EscrowStatus } from "./escrow-status";
 import { Search, Package, MapPin, User, Calendar, Truck, RefreshCw, Clock, CheckCircle2, AlertCircle, XCircle, Copy, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -279,6 +280,10 @@ export function TrackShipment() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Escrow Status */}
+                    <EscrowStatus shipmentCode={shipment.shipmentCode} />
+
                     {/* Enhanced Shipment Events Timeline */}
                     {isLoadingEvents ? (
                         <Card>

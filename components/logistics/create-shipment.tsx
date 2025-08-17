@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateShipment } from "@/hooks/use-logistics";
 import { toast } from "sonner";
-import { Loader2, Package, MapPin, Truck, Wallet, Hash } from "lucide-react";
+import { Loader2, Package, MapPin, Truck, Wallet, Hash, Zap } from "lucide-react";
 
 const createShipmentSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -19,6 +19,10 @@ const createShipmentSchema = z.object({
     origin: z.string().min(1, "Origin is required"),
     destination: z.string().min(1, "Destination is required"),
     carrier: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address"),
+    depositAmount: z.string().optional().refine(
+        (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
+        "Invalid deposit amount"
+    ),
 });
 
 type CreateShipmentFormData = z.infer<typeof createShipmentSchema>;
@@ -34,8 +38,20 @@ export function CreateShipment() {
             origin: "",
             destination: "",
             carrier: "",
+            depositAmount: "",
         },
     });
+
+    // Quick fill examples
+    const quickFillExample = () => {
+        form.setValue("shipmentCode", "CODE1");
+        form.setValue("productName", "Electronics");
+        form.setValue("origin", "Ho Chi Minh City");
+        form.setValue("destination", "Tokyo");
+        form.setValue("carrier", "0x742d35Cc6635C0532925a3b8D39Cd9F5B1e4F9D1");
+        form.setValue("depositAmount", "0.2");
+        toast.success("Example data filled in!");
+    };
 
     const onSubmit = async (data: CreateShipmentFormData) => {
         try {
@@ -44,9 +60,10 @@ export function CreateShipment() {
                 data.productName,
                 data.origin,
                 data.destination,
-                data.carrier
+                data.carrier,
+                data.depositAmount // Thêm deposit amount
             );
-            toast.success("Creating shipment...");
+            toast.success("Creating shipment with escrow deposit...");
         } catch (error) {
             toast.error("Error occurred while creating shipment");
         }
@@ -70,16 +87,27 @@ export function CreateShipment() {
         <div className="space-y-6">
             <Card className="w-full max-w-3xl mx-auto border-2 shadow-lg">
                 <CardHeader className="pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <Package className="w-4 h-4 text-primary" />
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <Package className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-xl">Create New Shipment</CardTitle>
+                                <CardDescription className="text-sm mt-1">
+                                    Create a blockchain shipment with escrow protection
+                                </CardDescription>
+                            </div>
                         </div>
-                        <div>
-                            <CardTitle className="text-xl">Create New Shipment</CardTitle>
-                            <CardDescription className="text-sm mt-1">
-                                Create a blockchain shipment with detailed information
-                            </CardDescription>
-                        </div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={quickFillExample}
+                            className="flex items-center gap-2"
+                        >
+                            <Zap className="w-3 h-3" />
+                            Quick Fill
+                        </Button>
                     </div>
                 </CardHeader>
 
@@ -210,24 +238,53 @@ export function CreateShipment() {
                                 )}
                             />
 
+                            <FormField
+                                control={form.control}
+                                name="depositAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="flex items-center gap-2">
+                                            <Wallet className="w-4 h-4" />
+                                            Escrow Deposit (ETH) - Optional
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                step="0.001"
+                                                placeholder="0.2"
+                                                {...field}
+                                                className="h-12"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        <p className="text-xs text-muted-foreground">
+                                            Amount in ETH to hold in escrow. Released to carrier on delivery, refunded on cancellation.
+                                        </p>
+                                    </FormItem>
+                                )}
+                            />
+
                             {/* Information Panel */}
                             <div className="bg-muted/50 rounded-lg p-4 border">
                                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                                     <Truck className="w-4 h-4" />
-                                    Important Information
+                                    Escrow System Information
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
                                     <div>
+                                        <strong>• Escrow Protection:</strong> Funds held safely until delivery
+                                    </div>
+                                    <div>
+                                        <strong>• Auto Release:</strong> Released to carrier on "Delivered" status
+                                    </div>
+                                    <div>
+                                        <strong>• Auto Refund:</strong> Refunded to you on "Canceled" status
+                                    </div>
+                                    <div>
                                         <strong>• Transaction Fee:</strong> About 0.001 - 0.005 ETH
                                     </div>
-                                    <div>
-                                        <strong>• Confirmation Time:</strong> 1-3 minutes
-                                    </div>
-                                    <div>
-                                        <strong>• Security:</strong> AES-256 encryption
-                                    </div>
-                                    <div>
-                                        <strong>• Tracking:</strong> Real-time updates 24/7
+                                    <div className="md:col-span-2">
+                                        <strong>• Security:</strong> Smart contract ensures transparent and secure transactions
                                     </div>
                                 </div>
                             </div>
