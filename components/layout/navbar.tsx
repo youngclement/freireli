@@ -9,10 +9,11 @@ import { useScroll } from "@/hooks/use-scroll";
 import { ModeToggleSimple } from "@/components/theme/mode-toggle-simple";
 
 const navigation = [
-    { name: "Create Shipment", href: "/create" },
+    { name: "Create", href: "/create" },
     { name: "Track", href: "/track" },
     { name: "Manage", href: "/manage" },
-
+    { name: "Rate", href: "/rate" },
+    { name: "Profiles", href: "/profile" },
 ];
 
 export function Navbar() {

@@ -15,14 +15,14 @@ import { toast } from "sonner";
 
 const getStatusText = (status: StatusEnum) => {
     switch (status) {
-        case StatusEnum.Created:
-            return "Created";
+        case StatusEnum.Pending:
+            return "Pending";
         case StatusEnum.InTransit:
             return "In Transit";
         case StatusEnum.Delivered:
             return "Delivered";
-        case StatusEnum.Cancelled:
-            return "Cancelled";
+        case StatusEnum.Canceled:
+            return "Canceled";
         default:
             return "Không xác định";
     }
@@ -30,13 +30,13 @@ const getStatusText = (status: StatusEnum) => {
 
 const getStatusColor = (status: StatusEnum) => {
     switch (status) {
-        case StatusEnum.Created:
+        case StatusEnum.Pending:
             return "bg-blue-500 hover:bg-blue-600";
         case StatusEnum.InTransit:
             return "bg-yellow-500 hover:bg-yellow-600";
         case StatusEnum.Delivered:
             return "bg-green-500 hover:bg-green-600";
-        case StatusEnum.Cancelled:
+        case StatusEnum.Canceled:
             return "bg-red-500 hover:bg-red-600";
         default:
             return "bg-gray-500 hover:bg-gray-600";
@@ -45,13 +45,13 @@ const getStatusColor = (status: StatusEnum) => {
 
 const getStatusIcon = (status: StatusEnum) => {
     switch (status) {
-        case StatusEnum.Created:
+        case StatusEnum.Pending:
             return <Package className="w-4 h-4" />;
         case StatusEnum.InTransit:
             return <Truck className="w-4 h-4" />;
         case StatusEnum.Delivered:
             return <CheckCircle2 className="w-4 h-4" />;
-        case StatusEnum.Cancelled:
+        case StatusEnum.Canceled:
             return <XCircle className="w-4 h-4" />;
         default:
             return <AlertCircle className="w-4 h-4" />;
@@ -180,15 +180,15 @@ export function TrackShipment() {
                                 <div className="flex justify-between mb-2">
                                     <span className="text-sm font-medium">Tiến độ vận chuyển</span>
                                     <span className="text-sm text-muted-foreground">
-                                        {shipment.currentStatus === StatusEnum.Created && "0%"}
+                                        {shipment.currentStatus === StatusEnum.Pending && "0%"}
                                         {shipment.currentStatus === StatusEnum.InTransit && "50%"}
                                         {shipment.currentStatus === StatusEnum.Delivered && "100%"}
-                                        {shipment.currentStatus === StatusEnum.Cancelled && "Cancelled"}
+                                        {shipment.currentStatus === StatusEnum.Canceled && "Canceled"}
                                     </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-3">
                                     <div
-                                        className={`h-3 rounded-full transition-all duration-500 ${shipment.currentStatus === StatusEnum.Created ? 'w-1/4 bg-blue-500' :
+                                        className={`h-3 rounded-full transition-all duration-500 ${shipment.currentStatus === StatusEnum.Pending ? 'w-1/4 bg-blue-500' :
                                             shipment.currentStatus === StatusEnum.InTransit ? 'w-3/4 bg-yellow-500' :
                                                 shipment.currentStatus === StatusEnum.Delivered ? 'w-full bg-green-500' :
                                                     'w-0 bg-red-500'

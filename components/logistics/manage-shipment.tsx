@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAddShipmentEvent, useUpdateShipmentStatus } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import { Loader2, Plus, Edit, Settings, MapPin, Activity, CheckCircle2 } from "lucide-react";
+import { Plus, Edit, Settings, CheckCircle2, MapPin, Calendar, Loader2, MessageSquare, Activity } from "lucide-react";
 
 const addEventSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -24,6 +25,7 @@ const addEventSchema = z.object({
 const updateStatusSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
     newStatus: z.enum(["0", "1", "2", "3"]),
+    note: z.string().optional(),
 });
 
 type AddEventFormData = z.infer<typeof addEventSchema>;
@@ -47,6 +49,7 @@ export function ManageShipment() {
         defaultValues: {
             shipmentCode: "",
             newStatus: "0",
+            note: "",
         },
     });
 
@@ -62,7 +65,7 @@ export function ManageShipment() {
     const onUpdateStatus = async (data: UpdateStatusFormData) => {
         try {
             const status = parseInt(data.newStatus) as StatusEnum;
-            updateStatus(data.shipmentCode, status);
+            updateStatus(data.shipmentCode, status, data.note);
             toast.success("Updating status...");
         } catch (error) {
             toast.error("Error occurred while updating status");
@@ -254,10 +257,10 @@ export function ManageShipment() {
                                                                 <SelectValue placeholder="Select status" />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value="0">🆕 Created</SelectItem>
+                                                                <SelectItem value="0">⏳ Pending</SelectItem>
                                                                 <SelectItem value="1">🚛 In Transit</SelectItem>
                                                                 <SelectItem value="2">✅ Delivered</SelectItem>
-                                                                <SelectItem value="3">❌ Cancelled</SelectItem>
+                                                                <SelectItem value="3">❌ Canceled</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     </FormControl>
@@ -266,6 +269,30 @@ export function ManageShipment() {
                                             )}
                                         />
                                     </div>
+
+                                    <FormField
+                                        control={statusForm.control}
+                                        name="note"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 text-sm">
+                                                    <MessageSquare className="w-3 h-3" />
+                                                    Update Note (Optional)
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder="Add a note about this status update..."
+                                                        className="min-h-[80px]"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Provide additional context for the status change
+                                                </p>
+                                            </FormItem>
+                                        )}
+                                    />
 
                                     <Button
                                         type="submit"
