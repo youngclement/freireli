@@ -13,16 +13,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAddShipmentEvent, useUpdateShipmentStatus } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import { Loader2, Plus, Edit } from "lucide-react";
+import { Loader2, Plus, Edit, Settings, MapPin, Activity, CheckCircle2 } from "lucide-react";
 
 const addEventSchema = z.object({
-    shipmentCode: z.string().min(1, "Mã vận đơn là bắt buộc"),
-    location: z.string().min(1, "Vị trí là bắt buộc"),
-    eventType: z.string().min(1, "Loại sự kiện là bắt buộc"),
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    location: z.string().min(1, "Location is required"),
+    eventType: z.string().min(1, "Event type is required"),
 });
 
 const updateStatusSchema = z.object({
-    shipmentCode: z.string().min(1, "Mã vận đơn là bắt buộc"),
+    shipmentCode: z.string().min(1, "Shipment code is required"),
     newStatus: z.enum(["0", "1", "2", "3"]),
 });
 
@@ -53,9 +53,9 @@ export function ManageShipment() {
     const onAddEvent = async (data: AddEventFormData) => {
         try {
             addEvent(data.shipmentCode, data.location, data.eventType);
-            toast.success("Đang thêm sự kiện...");
+            toast.success("Adding event...");
         } catch (error) {
-            toast.error("Có lỗi xảy ra khi thêm sự kiện");
+            toast.error("Error occurred while adding event");
         }
     };
 
@@ -63,9 +63,9 @@ export function ManageShipment() {
         try {
             const status = parseInt(data.newStatus) as StatusEnum;
             updateStatus(data.shipmentCode, status);
-            toast.success("Đang cập nhật trạng thái...");
+            toast.success("Updating status...");
         } catch (error) {
-            toast.error("Có lỗi xảy ra khi cập nhật trạng thái");
+            toast.error("Error occurred while updating status");
         }
     };
 
@@ -73,101 +73,116 @@ export function ManageShipment() {
     useEffect(() => {
         if (isEventConfirmed) {
             eventForm.reset();
-            toast.success("Thêm sự kiện thành công!");
+            toast.success("Event added successfully!");
         }
     }, [isEventConfirmed, eventForm]);
 
     useEffect(() => {
         if (isStatusConfirmed) {
             statusForm.reset();
-            toast.success("Cập nhật trạng thái thành công!");
+            toast.success("Status updated successfully!");
         }
     }, [isStatusConfirmed, statusForm]);
 
     useEffect(() => {
         if (eventError) {
-            toast.error("Lỗi thêm sự kiện: " + eventError.message);
+            toast.error("Add event error: " + eventError.message);
         }
     }, [eventError]);
 
     useEffect(() => {
         if (statusError) {
-            toast.error("Lỗi cập nhật trạng thái: " + statusError.message);
+            toast.error("Update status error: " + statusError.message);
         }
     }, [statusError]);
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Quản Lý Vận Đơn</CardTitle>
-                    <CardDescription>
-                        Thêm sự kiện và cập nhật trạng thái vận đơn
-                    </CardDescription>
+        <div className="space-y-6">
+            <Card className="w-full max-w-3xl mx-auto border-2 shadow-lg">
+                <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Settings className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-xl">Manage Shipments</CardTitle>
+                            <CardDescription className="text-sm mt-1">
+                                Add events and update shipment status
+                            </CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="add-event" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="add-event" className="flex items-center gap-2">
-                                <Plus className="h-4 w-4" />
-                                Thêm Sự Kiện
+                        <TabsList className="grid w-full grid-cols-2 h-12">
+                            <TabsTrigger value="add-event" className="flex items-center gap-2 text-sm">
+                                <Plus className="h-3 w-3" />
+                                Add Event
                             </TabsTrigger>
-                            <TabsTrigger value="update-status" className="flex items-center gap-2">
-                                <Edit className="h-4 w-4" />
-                                Cập Nhật Trạng Thái
+                            <TabsTrigger value="update-status" className="flex items-center gap-2 text-sm">
+                                <Edit className="h-3 w-3" />
+                                Update Status
                             </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="add-event" className="mt-6">
+                        <TabsContent value="add-event" className="mt-4">
                             <Form {...eventForm}>
                                 <form onSubmit={eventForm.handleSubmit(onAddEvent)} className="space-y-4">
-                                    <FormField
-                                        control={eventForm.control}
-                                        name="shipmentCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Mã Vận Đơn</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Nhập mã vận đơn" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={eventForm.control}
+                                            name="shipmentCode"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-sm">Shipment Code</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g. SH-2025-001" {...field} className="h-10" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
 
-                                    <FormField
-                                        control={eventForm.control}
-                                        name="location"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Vị Trí</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Nhập vị trí hiện tại" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                        <FormField
+                                            control={eventForm.control}
+                                            name="location"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex items-center gap-2 text-sm">
+                                                        <MapPin className="w-3 h-3" />
+                                                        Location
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g. Tan Son Nhat Warehouse" {...field} className="h-10" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
 
                                     <FormField
                                         control={eventForm.control}
                                         name="eventType"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Loại Sự Kiện</FormLabel>
+                                                <FormLabel className="flex items-center gap-2 text-sm">
+                                                    <Activity className="w-3 h-3" />
+                                                    Event Type
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Chọn loại sự kiện" />
+                                                        <SelectTrigger className="h-10">
+                                                            <SelectValue placeholder="Select event type" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="Picked up">Đã lấy hàng</SelectItem>
-                                                            <SelectItem value="In transit">Đang vận chuyển</SelectItem>
-                                                            <SelectItem value="Arrived at warehouse">Đã đến kho</SelectItem>
-                                                            <SelectItem value="Out for delivery">Đang giao hàng</SelectItem>
-                                                            <SelectItem value="Delivered">Đã giao</SelectItem>
-                                                            <SelectItem value="Failed delivery">Giao hàng thất bại</SelectItem>
-                                                            <SelectItem value="Returned">Đã trả lại</SelectItem>
+                                                            <SelectItem value="Picked up">📦 Picked up</SelectItem>
+                                                            <SelectItem value="In transit">🚛 In transit</SelectItem>
+                                                            <SelectItem value="Arrived at warehouse">🏭 Arrived at warehouse</SelectItem>
+                                                            <SelectItem value="Out for delivery">🚚 Out for delivery</SelectItem>
+                                                            <SelectItem value="Delivered">✅ Delivered</SelectItem>
+                                                            <SelectItem value="Failed delivery">❌ Failed delivery</SelectItem>
+                                                            <SelectItem value="Returned">↩️ Returned</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </FormControl>
@@ -178,83 +193,171 @@ export function ManageShipment() {
 
                                     <Button
                                         type="submit"
-                                        className="w-full"
+                                        className="w-full h-12 font-semibold"
                                         disabled={isAddingEvent || isConfirmingEvent}
                                     >
                                         {isAddingEvent || isConfirmingEvent ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                {isAddingEvent ? "Đang gửi..." : "Đang xác nhận..."}
+                                                {isAddingEvent ? "Sending..." : "Confirming..."}
                                             </>
                                         ) : (
-                                            "Thêm Sự Kiện"
+                                            <>
+                                                <Plus className="mr-2 h-4 w-4" />
+                                                Add Event
+                                            </>
                                         )}
                                     </Button>
+
+                                    {isConfirmingEvent && (
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm">
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                <span className="font-medium">Confirming event on blockchain...</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </form>
                             </Form>
                         </TabsContent>
 
-                        <TabsContent value="update-status" className="mt-6">
+                        <TabsContent value="update-status" className="mt-4">
                             <Form {...statusForm}>
                                 <form onSubmit={statusForm.handleSubmit(onUpdateStatus)} className="space-y-4">
-                                    <FormField
-                                        control={statusForm.control}
-                                        name="shipmentCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Mã Vận Đơn</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Nhập mã vận đơn" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={statusForm.control}
+                                            name="shipmentCode"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-sm">Shipment Code</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g. SH-2025-001" {...field} className="h-10" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
 
-                                    <FormField
-                                        control={statusForm.control}
-                                        name="newStatus"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Trạng Thái Mới</FormLabel>
-                                                <FormControl>
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Chọn trạng thái" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="0">Đã tạo</SelectItem>
-                                                            <SelectItem value="1">Đang vận chuyển</SelectItem>
-                                                            <SelectItem value="2">Đã giao</SelectItem>
-                                                            <SelectItem value="3">Đã hủy</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                        <FormField
+                                            control={statusForm.control}
+                                            name="newStatus"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex items-center gap-2 text-sm">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        New Status
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <SelectTrigger className="h-10">
+                                                                <SelectValue placeholder="Select status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="0">🆕 Created</SelectItem>
+                                                                <SelectItem value="1">🚛 In Transit</SelectItem>
+                                                                <SelectItem value="2">✅ Delivered</SelectItem>
+                                                                <SelectItem value="3">❌ Cancelled</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
 
                                     <Button
                                         type="submit"
-                                        className="w-full"
+                                        className="w-full h-12 font-semibold"
                                         disabled={isUpdatingStatus || isConfirmingStatus}
                                     >
                                         {isUpdatingStatus || isConfirmingStatus ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                {isUpdatingStatus ? "Đang gửi..." : "Đang xác nhận..."}
+                                                {isUpdatingStatus ? "Sending..." : "Confirming..."}
                                             </>
                                         ) : (
-                                            "Cập Nhật Trạng Thái"
+                                            <>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Update Status
+                                            </>
                                         )}
                                     </Button>
+
+                                    {isConfirmingStatus && (
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm">
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                <span className="font-medium">Confirming status on blockchain...</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </form>
                             </Form>
                         </TabsContent>
                     </Tabs>
                 </CardContent>
             </Card>
+
+            {/* Success Messages */}
+            {isEventConfirmed && (
+                <Card className="w-full max-w-3xl mx-auto border-green-200 bg-green-50 dark:bg-green-900/20">
+                    <CardContent className="pt-4">
+                        <div className="text-center">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Plus className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
+                                Event Successfully Added!
+                            </h3>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                                New event has been recorded on the blockchain.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {isStatusConfirmed && (
+                <Card className="w-full max-w-3xl mx-auto border-green-200 bg-green-50 dark:bg-green-900/20">
+                    <CardContent className="pt-4">
+                        <div className="text-center">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Edit className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
+                                Status Updated Successfully!
+                            </h3>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                                Shipment status has been updated on the blockchain.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Quick Info */}
+            <div className="bg-muted/20 rounded-lg p-4 max-w-3xl mx-auto">
+                <h3 className="font-semibold mb-3 text-sm flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-primary" />
+                    Admin Information:
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted-foreground">
+                    <div>
+                        <strong>Access:</strong> Admin/Carrier
+                    </div>
+                    <div>
+                        <strong>Gas Fee:</strong> ~0.002 ETH
+                    </div>
+                    <div>
+                        <strong>Confirmation:</strong> 1-3 minutes
+                    </div>
+                    <div>
+                        <strong>Security:</strong> Multi-sig
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
