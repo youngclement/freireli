@@ -128,12 +128,16 @@ export function useAddShipmentEvent() {
 export function useUpdateShipmentStatus() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const updateStatus = (shipmentCode: string, newStatus: StatusEnum) => {
+  const updateStatus = (
+    shipmentCode: string,
+    newStatus: StatusEnum,
+    note?: string
+  ) => {
     writeContract({
       address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
       abi: LOGISTICS_ABI,
       functionName: "updateShipmentStatus",
-      args: [shipmentCode, newStatus],
+      args: [shipmentCode, newStatus, note || ""],
     });
   };
 
@@ -150,4 +154,75 @@ export function useUpdateShipmentStatus() {
     isConfirmed,
     error,
   };
+}
+
+// Hook để đánh giá carrier
+export function useRateCarrier() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const rateCarrier = (
+    shipmentCode: string,
+    rating: number,
+    feedback: string
+  ) => {
+    writeContract({
+      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+      abi: LOGISTICS_ABI,
+      functionName: "rateCarrier",
+      args: [shipmentCode, rating, feedback],
+    });
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    rateCarrier,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để lấy thông tin đánh giá carrier
+export function useGetCarrierRating(carrierAddress?: string) {
+  return useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "getCarrierAverageRating",
+    args: carrierAddress ? [carrierAddress as `0x${string}`] : undefined,
+    query: {
+      enabled: !!carrierAddress,
+    },
+  });
+}
+
+// Hook để lấy thống kê carrier
+export function useGetCarrierStats(carrierAddress?: string) {
+  return useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "carrierStats",
+    args: carrierAddress ? [carrierAddress as `0x${string}`] : undefined,
+    query: {
+      enabled: !!carrierAddress,
+    },
+  });
+}
+
+// Hook để lấy lịch sử thay đổi status
+export function useGetStatusHistory(shipmentCode?: string) {
+  return useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "getStatusHistory",
+    args: shipmentCode ? [shipmentCode] : undefined,
+    query: {
+      enabled: !!shipmentCode,
+    },
+  });
 }
