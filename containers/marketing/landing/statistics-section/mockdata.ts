@@ -20,7 +20,7 @@ export const transportModes = [
     title: "IoT Tracking",
     image:
       "https://images.unsplash.com/photo-1558618666-fcd25c85cd4?q=80&w=1000",
-    bgStyle: "from-green-500/20",
+    bgStyle: "from-lime-500/20",
   },
   {
     id: "03",
