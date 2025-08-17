@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAddShipmentEvent, useUpdateShipmentStatus } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import { Plus, Edit, Settings, CheckCircle2, MapPin, Calendar, Loader2, MessageSquare, Activity } from "lucide-react";
+import { Plus, Edit, Settings, CheckCircle2, MapPin, Loader2, MessageSquare, Activity } from "lucide-react";
 
 const addEventSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -57,7 +57,7 @@ export function ManageShipment() {
         try {
             addEvent(data.shipmentCode, data.location, data.eventType);
             toast.success("Adding event...");
-        } catch (error) {
+        } catch {
             toast.error("Error occurred while adding event");
         }
     };
@@ -67,7 +67,7 @@ export function ManageShipment() {
             const status = parseInt(data.newStatus) as StatusEnum;
             updateStatus(data.shipmentCode, status, data.note);
             toast.success("Updating status...");
-        } catch (error) {
+        } catch {
             toast.error("Error occurred while updating status");
         }
     };

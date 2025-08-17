@@ -242,7 +242,7 @@ export function useIsEscrowReleased(shipmentCode?: string) {
   });
 
   const shipmentData = shipment as Shipment | undefined;
-  
+
   return {
     isReleased: shipmentData?.escrowReleased || false,
     isRefunded: shipmentData?.escrowRefunded || false,

@@ -1,6 +1,6 @@
 import { RateCarrier } from "@/components/logistics/rate-carrier";
+import { Award, Star, ThumbsUp } from "lucide-react";
 import Image from "next/image";
-import { Star, ThumbsUp, Award, Users } from "lucide-react";
 
 export default function RateCarrierPage() {
     return (

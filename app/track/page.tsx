@@ -1,6 +1,5 @@
 import { TrackShipment } from "@/components/logistics/track-shipment";
 import Image from "next/image";
-import { Search, MapPin, Clock, Shield, BarChart3 } from "lucide-react";
 
 export default function TrackPage() {
     return (
@@ -83,7 +82,7 @@ export default function TrackPage() {
                             </div>
                             <h3 className="font-semibold mb-1 text-sm">Click Search</h3>
                             <p className="text-xs text-muted-foreground">
-                                Click "Search" button to lookup
+                                Click &ldquo;Search&rdquo; button to lookup
                             </p>
                         </div>
 

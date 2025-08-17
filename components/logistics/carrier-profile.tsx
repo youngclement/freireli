@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Star, User, TrendingUp, Package, Search, Copy, Check } from "lucide-react";
 import { useGetCarrierRating, useGetCarrierStats } from "@/hooks/use-logistics";
+import { Check, Copy, Package, Search, Star, TrendingUp, User } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function CarrierProfile() {
@@ -29,7 +29,7 @@ export function CarrierProfile() {
             setCopied(true);
             toast.success("Address copied to clipboard");
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
+        } catch {
             toast.error("Failed to copy address");
         }
     };
@@ -73,7 +73,7 @@ export function CarrierProfile() {
                         Carrier Profile Lookup
                     </CardTitle>
                     <CardDescription>
-                        Enter a carrier's wallet address to view their performance statistics
+                        Enter a carrier&apos;s wallet address to view their performance statistics
                     </CardDescription>
                 </CardHeader>
 
@@ -120,7 +120,7 @@ export function CarrierProfile() {
                                             {renderStars(Number(formatRating(ratingData as bigint)))}
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            Based on {statsData ? Number((statsData as any)[1]) : 0} reviews
+                                            Based on {statsData ? Number((statsData as [bigint, bigint])[1]) : 0} reviews
                                         </p>
                                     </div>
 
@@ -168,20 +168,20 @@ export function CarrierProfile() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Total Reviews:</span>
                                         <span className="font-semibold">
-                                            {statsData ? Number((statsData as any)[1]) : 0}
+                                            {statsData ? Number((statsData as [bigint, bigint])[1]) : 0}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Total Rating Points:</span>
                                         <span className="font-semibold">
-                                            {statsData ? Number((statsData as any)[0]) : 0}
+                                            {statsData ? Number((statsData as [bigint, bigint])[0]) : 0}
                                         </span>
                                     </div>
                                     <div className="pt-2 border-t">
                                         <div className="flex items-center gap-2 text-sm">
                                             <Package className="w-4 h-4 text-muted-foreground" />
                                             <span className="text-muted-foreground">
-                                                Completed {statsData ? Number((statsData as any)[1]) : 0} shipments
+                                                Completed {statsData ? Number((statsData as [bigint, bigint])[1]) : 0} shipments
                                             </span>
                                         </div>
                                     </div>

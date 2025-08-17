@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useCreateShipment } from "@/hooks/use-logistics";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Hash, Loader2, MapPin, Package, Truck, Wallet, Zap } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2, Package, MapPin, Truck, Wallet, Hash, Zap } from "lucide-react";
+import * as z from "zod";
 
 const createShipmentSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -64,7 +63,7 @@ export function CreateShipment() {
                 data.depositAmount // Thêm deposit amount
             );
             toast.success("Creating shipment with escrow deposit...");
-        } catch (error) {
+        } catch {
             toast.error("Error occurred while creating shipment");
         }
     };
@@ -99,9 +98,9 @@ export function CreateShipment() {
                                 </CardDescription>
                             </div>
                         </div>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={quickFillExample}
                             className="flex items-center gap-2"
                         >
@@ -232,7 +231,7 @@ export function CreateShipment() {
                                         </FormControl>
                                         <FormMessage />
                                         <p className="text-xs text-muted-foreground">
-                                            Authorized carrier's Ethereum wallet address
+                                            Authorized carrier&apos;s Ethereum wallet address
                                         </p>
                                     </FormItem>
                                 )}
@@ -275,10 +274,10 @@ export function CreateShipment() {
                                         <strong>• Escrow Protection:</strong> Funds held safely until delivery
                                     </div>
                                     <div>
-                                        <strong>• Auto Release:</strong> Released to carrier on "Delivered" status
+                                        <strong>• Auto Release:</strong> Released to carrier on &ldquo;Delivered&rdquo; status
                                     </div>
                                     <div>
-                                        <strong>• Auto Refund:</strong> Refunded to you on "Canceled" status
+                                        <strong>• Auto Refund:</strong> Refunded to you on &ldquo;Canceled&rdquo; status
                                     </div>
                                     <div>
                                         <strong>• Transaction Fee:</strong> About 0.001 - 0.005 ETH

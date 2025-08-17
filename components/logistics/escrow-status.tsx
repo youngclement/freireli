@@ -1,11 +1,11 @@
 "use client";
 
-import { formatEther } from "viem";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, CheckCircle, XCircle, Clock, Shield } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetShipment, useIsEscrowReleased } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
+import { CheckCircle, Clock, Shield, Wallet, XCircle } from "lucide-react";
+import { formatEther } from "viem";
 
 interface EscrowStatusProps {
     shipmentCode: string;
@@ -55,7 +55,7 @@ export function EscrowStatus({ shipmentCode }: EscrowStatusProps) {
                 description: "Funds have been released to the carrier"
             };
         }
-        
+
         if (isRefunded) {
             return {
                 status: "Refunded",
@@ -125,8 +125,8 @@ export function EscrowStatus({ shipmentCode }: EscrowStatusProps) {
                     </div>
 
                     <div className="text-xs text-muted-foreground space-y-1">
-                        <p>• <strong>Auto Release:</strong> Funds automatically released when status changes to "Delivered"</p>
-                        <p>• <strong>Auto Refund:</strong> Funds automatically refunded when status changes to "Canceled"</p>
+                        <p>• <strong>Auto Release:</strong> Funds automatically released when status changes to &ldquo;Delivered&rdquo;</p>
+                        <p>• <strong>Auto Refund:</strong> Funds automatically refunded when status changes to &ldquo;Canceled&rdquo;</p>
                         <p>• <strong>Security:</strong> Smart contract ensures transparent and secure transactions</p>
                     </div>
                 </div>

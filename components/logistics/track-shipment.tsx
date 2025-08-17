@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useGetShipment, useGetShipmentEvents } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
-import { EscrowStatus } from "./escrow-status";
-import { Search, Package, MapPin, User, Calendar, Truck, RefreshCw, Clock, CheckCircle2, AlertCircle, XCircle, Copy, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { AlertCircle, Calendar, CheckCircle2, Clock, Copy, MapPin, Package, RefreshCw, Search, Truck, User, XCircle } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { EscrowStatus } from "./escrow-status";
 
 const getStatusText = (status: StatusEnum) => {
     switch (status) {
@@ -398,7 +397,7 @@ export function TrackShipment() {
                             </div>
                             <div className="flex items-start gap-2">
                                 <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                                <span>Click "Refresh" to update the latest information</span>
+                                <span>Click &ldquo;Refresh&rdquo; to update the latest information</span>
                             </div>
                             <div className="flex items-start gap-2">
                                 <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>

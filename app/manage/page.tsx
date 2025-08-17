@@ -1,6 +1,5 @@
 import { ManageShipment } from "@/components/logistics/manage-shipment";
 import Image from "next/image";
-import { Settings, Edit, Plus, Shield, Activity } from "lucide-react";
 
 export default function ManagePage() {
     return (

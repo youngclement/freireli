@@ -1,9 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfigInfo } from "@/components/config/config-info";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Code, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { config } from "@/lib/config";
-import { ConfigInfo } from "@/components/config/config-info";
+import { AlertTriangle, CheckCircle, Code, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 export default function SetupPage() {

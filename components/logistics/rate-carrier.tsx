@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { Star, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRateCarrier } from "@/hooks/use-logistics";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Send, Star } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const rateCarrierSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -23,7 +23,7 @@ type RateCarrierFormData = z.infer<typeof rateCarrierSchema>;
 
 export function RateCarrier() {
     const [selectedRating, setSelectedRating] = useState<number>(0);
-    const { rateCarrier, isPending, isConfirming, isConfirmed, error } = useRateCarrier();
+    const { rateCarrier, isPending, isConfirming, isConfirmed } = useRateCarrier();
 
     const form = useForm<RateCarrierFormData>({
         resolver: zodResolver(rateCarrierSchema),
@@ -38,7 +38,7 @@ export function RateCarrier() {
         try {
             rateCarrier(data.shipmentCode, data.rating, data.feedback);
             toast.success("Submitting carrier rating...");
-        } catch (error) {
+        } catch {
             toast.error("Error submitting rating");
         }
     };
@@ -122,8 +122,8 @@ export function RateCarrier() {
                                                     >
                                                         <Star
                                                             className={`w-8 h-8 ${star <= (selectedRating || field.value)
-                                                                    ? "text-yellow-500 fill-yellow-500"
-                                                                    : "text-gray-300"
+                                                                ? "text-yellow-500 fill-yellow-500"
+                                                                : "text-gray-300"
                                                                 }`}
                                                         />
                                                     </button>

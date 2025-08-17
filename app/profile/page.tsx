@@ -1,6 +1,6 @@
 import { CarrierProfile } from "@/components/logistics/carrier-profile";
+import { Award, Shield } from "lucide-react";
 import Image from "next/image";
-import { User, TrendingUp, Award, Shield } from "lucide-react";
 
 export default function CarrierProfilePage() {
     return (

@@ -1,6 +1,6 @@
 import { CreateShipment } from "@/components/logistics/create-shipment";
+import { Shield, Zap } from "lucide-react";
 import Image from "next/image";
-import { Package, Truck, MapPin, Zap, Shield } from "lucide-react";
 
 export default function CreatePage() {
     return (

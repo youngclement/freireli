@@ -1,14 +1,4 @@
-import {
-  Geist,
-  Geist_Mono,
-  Instrument_Sans,
-  Merriweather,
-  Merriweather_Sans,
-  Nunito,
-  Quantico,
-  Rowdies,
-  Voces,
-} from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Sans, Nunito } from "next/font/google";
 
 // Font chính cho toàn bộ website
 export const primaryFont = Geist({
