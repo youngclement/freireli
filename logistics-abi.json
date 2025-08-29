@@ -30,6 +30,19 @@
         "internalType": "string",
         "name": "shipmentCode",
         "type": "string"
+      }
+    ],
+    "name": "AutoCanceledByDeadline",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
       },
       {
         "indexed": false,
@@ -79,12 +92,98 @@
         "internalType": "address",
         "name": "carrier",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "depositWei",
+        "type": "uint256"
       }
     ],
     "name": "createShipment",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EscrowDeposited",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EscrowDisputeResolvedRefund",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EscrowDisputeResolvedRelease",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "by",
+        "type": "address"
+      }
+    ],
+    "name": "EscrowDisputed",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -137,6 +236,44 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "shipmentCode",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "addAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EscrowToppedUp",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      }
+    ],
+    "name": "openDispute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -160,6 +297,32 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      }
+    ],
+    "name": "resolveDisputeAndRefund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      }
+    ],
+    "name": "resolveDisputeAndRelease",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -172,6 +335,12 @@
         "indexed": false,
         "internalType": "uint256",
         "name": "depositAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deadline",
         "type": "uint256"
       }
     ],
@@ -227,6 +396,42 @@
     ],
     "name": "ShipmentStatusUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "addWei",
+        "type": "uint256"
+      }
+    ],
+    "name": "topUpEscrow",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "note",
+        "type": "string"
+      }
+    ],
+    "name": "triggerAutoCancel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -302,6 +507,40 @@
         "type": "string"
       }
     ],
+    "name": "getEscrowInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum LogisticsBase.EscrowState",
+        "name": "state",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum LogisticsBase.StatusEnum",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      }
+    ],
     "name": "getShipment",
     "outputs": [
       {
@@ -352,14 +591,14 @@
             "type": "uint256"
           },
           {
-            "internalType": "bool",
-            "name": "escrowReleased",
-            "type": "bool"
+            "internalType": "enum LogisticsBase.EscrowState",
+            "name": "escrowState",
+            "type": "uint8"
           },
           {
-            "internalType": "bool",
-            "name": "escrowRefunded",
-            "type": "bool"
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
           },
           {
             "internalType": "bool",
@@ -467,6 +706,19 @@
         "internalType": "struct LogisticsBase.StatusChange[]",
         "name": "",
         "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

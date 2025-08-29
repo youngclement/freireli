@@ -11,7 +11,7 @@ export const config = {
   contract: {
     logisticsAddress:
       process.env.NEXT_PUBLIC_LOGISTICS_CONTRACT_ADDRESS ||
-      "0xc0481B35b41Ec0Eab74e3fe2723e82E256FD2FC8",
+      "0x77C990b9372F6f3E69a06f840bD6dccE56311322",
   },
 
   // Network

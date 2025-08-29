@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAddShipmentEvent, useUpdateShipmentStatus } from "@/hooks/use-logistics";
+import { useAddShipmentEvent, useGetShipment, useUpdateShipmentStatus } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
 import { Plus, Edit, Settings, CheckCircle2, MapPin, Loader2, MessageSquare, Activity } from "lucide-react";
@@ -35,6 +35,11 @@ export function ManageShipment() {
     const { addEvent, isPending: isAddingEvent, isConfirming: isConfirmingEvent, isConfirmed: isEventConfirmed, error: eventError } = useAddShipmentEvent();
     const { updateStatus, isPending: isUpdatingStatus, isConfirming: isConfirmingStatus, isConfirmed: isStatusConfirmed, error: statusError } = useUpdateShipmentStatus();
 
+    // State để lưu shipment code hiện tại
+    const [currentShipmentCode, setCurrentShipmentCode] = useState("");
+    // Lấy thông tin shipment
+    const { shipment, isError: shipmentError, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(currentShipmentCode);
+
     const eventForm = useForm<AddEventFormData>({
         resolver: zodResolver(addEventSchema),
         defaultValues: {
@@ -55,19 +60,46 @@ export function ManageShipment() {
 
     const onAddEvent = async (data: AddEventFormData) => {
         try {
+            console.log(`Adding shipment event: ${data.shipmentCode}, ${data.location}, ${data.eventType}`);
             addEvent(data.shipmentCode, data.location, data.eventType);
             toast.success("Adding event...");
-        } catch {
-            toast.error("Error occurred while adding event");
+        } catch (error) {
+            console.error("Error adding event:", error);
+            toast.error(`Error occurred while adding event: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
     const onUpdateStatus = async (data: UpdateStatusFormData) => {
         try {
-            const status = parseInt(data.newStatus) as StatusEnum;
-            updateStatus(data.shipmentCode, status, data.note);
+            // Cập nhật shipment code hiện tại để kích hoạt useGetShipment
+            setCurrentShipmentCode(data.shipmentCode);
+
+            // Đảm bảo lấy dữ liệu mới nhất
+            await refetchShipment();
+
+            // Nếu đang tải, hiển thị thông báo
+            if (shipmentLoading) {
+                toast.info("Checking shipment...");
+                return;
+            }
+
+            // Nếu có lỗi hoặc không tìm thấy shipment
+            if (shipmentError || !shipment) {
+                toast.error(`Shipment with code ${data.shipmentCode} not found or not accessible`);
+                return;
+            }
+
+            // Kiểm tra trạng thái hiện tại và trạng thái mới
+            const currentStatus = shipment.currentStatus;
+            const newStatus = parseInt(data.newStatus) as StatusEnum;
+
+            console.log(`Updating shipment ${data.shipmentCode} from status ${currentStatus} to ${newStatus}`);
+
+            // Thực hiện cập nhật
+            await updateStatus(data.shipmentCode, newStatus, data.note);
             toast.success("Updating status...");
-        } catch {
+        } catch (error) {
+            console.error("Error in onUpdateStatus:", error);
             toast.error("Error occurred while updating status");
         }
     };
@@ -179,13 +211,13 @@ export function ManageShipment() {
                                                             <SelectValue placeholder="Select event type" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="Picked up">📦 Picked up</SelectItem>
-                                                            <SelectItem value="In transit">🚛 In transit</SelectItem>
-                                                            <SelectItem value="Arrived at warehouse">🏭 Arrived at warehouse</SelectItem>
-                                                            <SelectItem value="Out for delivery">🚚 Out for delivery</SelectItem>
-                                                            <SelectItem value="Delivered">✅ Delivered</SelectItem>
-                                                            <SelectItem value="Failed delivery">❌ Failed delivery</SelectItem>
-                                                            <SelectItem value="Returned">↩️ Returned</SelectItem>
+                                                            <SelectItem value="pickup">📦 Picked up</SelectItem>
+                                                            <SelectItem value="in_transit">🚛 In transit</SelectItem>
+                                                            <SelectItem value="warehouse_arrival">🏭 Arrived at warehouse</SelectItem>
+                                                            <SelectItem value="out_for_delivery">🚚 Out for delivery</SelectItem>
+                                                            <SelectItem value="delivery_complete">✅ Delivery complete</SelectItem>
+                                                            <SelectItem value="delivery_failed">❌ Failed delivery</SelectItem>
+                                                            <SelectItem value="returned">↩️ Returned</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </FormControl>

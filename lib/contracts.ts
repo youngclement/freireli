@@ -14,6 +14,14 @@ export enum StatusEnum {
   Canceled = 3,
 }
 
+// Enum cho Escrow State
+export enum EscrowState {
+  Deposited = 0,
+  Released = 1,
+  Refunded = 2,
+  Disputed = 3,
+}
+
 // Types cho Shipment
 export interface Shipment {
   shipmentCode: string;
@@ -25,8 +33,8 @@ export interface Shipment {
   carrier: string;
   createdAt: bigint;
   depositAmount: bigint;
-  escrowReleased: boolean;
-  escrowRefunded: boolean;
+  escrowState: EscrowState;
+  deadline: bigint;
   rated: boolean;
   rating: number;
   feedback: string;
@@ -62,6 +70,7 @@ export interface CreateShipmentForm {
   origin: string;
   destination: string;
   carrier: string;
+  deadline: number; // Timestamp cho deadline
   depositAmount?: string; // Số Ether để deposit (optional)
 }
 

@@ -3,7 +3,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { parseEther } from "viem";
+import { parseEther, parseGwei } from "viem";
 import {
   LOGISTICS_CONTRACT_ADDRESS,
   LOGISTICS_ABI,
@@ -22,8 +22,11 @@ export function useCreateShipment() {
     origin: string,
     destination: string,
     carrier: string,
+    deadline: number, // Timestamp cho deadline
     depositAmount?: string // Số Ether để deposit (dạng string, ví dụ: "0.2")
   ) => {
+    const depositWei = depositAmount ? parseEther(depositAmount) : BigInt(0);
+
     writeContract({
       address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
       abi: LOGISTICS_ABI,
@@ -34,8 +37,14 @@ export function useCreateShipment() {
         origin,
         destination,
         carrier as `0x${string}`,
+        BigInt(deadline),
+        depositWei,
       ],
       value: depositAmount ? parseEther(depositAmount) : undefined,
+      // Cấu hình gas đúng cách cho Kairos testnet
+      gas: BigInt(250000), // Gas limit hợp lý
+      maxFeePerGas: parseGwei("6"),
+      maxPriorityFeePerGas: parseGwei("1.5"),
     });
   };
 
@@ -103,11 +112,16 @@ export function useAddShipmentEvent() {
     location: string,
     eventType: string
   ) => {
+    console.log(`Adding event: ${shipmentCode}, ${location}, ${eventType}`);
     writeContract({
       address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
       abi: LOGISTICS_ABI,
       functionName: "addShipmentEvent",
       args: [shipmentCode, location, eventType],
+      // Cấu hình gas đúng cách cho Kairos testnet
+      gas: BigInt(250000), // Gas limit hợp lý
+      maxFeePerGas: parseGwei("6"),
+      maxPriorityFeePerGas: parseGwei("1.5"),
     });
   };
 
@@ -130,17 +144,30 @@ export function useAddShipmentEvent() {
 export function useUpdateShipmentStatus() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const updateStatus = (
+  const updateStatus = async (
     shipmentCode: string,
     newStatus: StatusEnum,
     note?: string
   ) => {
-    writeContract({
-      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: LOGISTICS_ABI,
-      functionName: "updateShipmentStatus",
-      args: [shipmentCode, newStatus, note || ""],
-    });
+    try {
+      // Kiểm tra xem shipment có tồn tại không trước khi cập nhật
+      console.log(
+        `Đang cập nhật shipment ${shipmentCode} sang trạng thái ${newStatus} với ghi chú: ${
+          note || ""
+        }`
+      );
+
+      await writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "updateShipmentStatus",
+        args: [shipmentCode, newStatus, note || ""],
+        // Cấu hình gas đúng cách cho Kairos testnet
+      });
+    } catch (err) {
+      console.error("Lỗi khi cập nhật trạng thái:", err);
+      throw err; // Re-throw để component có thể xử lý
+    }
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -172,6 +199,10 @@ export function useRateCarrier() {
       abi: LOGISTICS_ABI,
       functionName: "rateCarrier",
       args: [shipmentCode, rating, feedback],
+      // Cấu hình gas đúng cách cho Kairos testnet
+      gas: BigInt(250000), // Gas limit hợp lý
+      maxFeePerGas: parseGwei("6"),
+      maxPriorityFeePerGas: parseGwei("1.5"),
     });
   };
 
@@ -244,8 +275,8 @@ export function useIsEscrowReleased(shipmentCode?: string) {
   const shipmentData = shipment as Shipment | undefined;
 
   return {
-    isReleased: shipmentData?.escrowReleased || false,
-    isRefunded: shipmentData?.escrowRefunded || false,
+    isReleased: shipmentData?.escrowState === 1, // EscrowState.Released
+    isRefunded: shipmentData?.escrowState === 2, // EscrowState.Refunded
     depositAmount: shipmentData?.depositAmount || BigInt(0),
   };
 }

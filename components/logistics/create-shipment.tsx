@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useCreateShipment } from "@/hooks/use-logistics";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hash, Loader2, MapPin, Package, Truck, Wallet, Zap } from "lucide-react";
+import { Calendar, Clock, Hash, Loader2, MapPin, Package, Truck, Wallet, Zap } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -18,8 +18,15 @@ const createShipmentSchema = z.object({
     origin: z.string().min(1, "Origin is required"),
     destination: z.string().min(1, "Destination is required"),
     carrier: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address"),
-    depositAmount: z.string().optional().refine(
-        (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
+    deadline: z.string().min(1, "Deadline is required").refine(
+        (val) => {
+            const date = new Date(val);
+            return !isNaN(date.getTime()) && date > new Date();
+        },
+        "Deadline must be a valid future date"
+    ),
+    depositAmount: z.string().min(1, "Deposit amount is required").refine(
+        (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
         "Invalid deposit amount"
     ),
 });
@@ -37,33 +44,45 @@ export function CreateShipment() {
             origin: "",
             destination: "",
             carrier: "",
+            deadline: "",
             depositAmount: "",
         },
     });
 
     // Quick fill examples
     const quickFillExample = () => {
+        // Set deadline to 7 days from now
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 7);
+
         form.setValue("shipmentCode", "CODE1");
         form.setValue("productName", "Electronics");
         form.setValue("origin", "Ho Chi Minh City");
         form.setValue("destination", "Tokyo");
         form.setValue("carrier", "0x742d35Cc6635C0532925a3b8D39Cd9F5B1e4F9D1");
+        form.setValue("deadline", futureDate.toISOString().split('T')[0]);
         form.setValue("depositAmount", "0.2");
         toast.success("Example data filled in!");
     };
 
     const onSubmit = async (data: CreateShipmentFormData) => {
         try {
+            // Convert deadline string to timestamp (seconds)
+            const deadlineDate = new Date(data.deadline);
+            const deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000);
+
             createShipment(
                 data.shipmentCode,
                 data.productName,
                 data.origin,
                 data.destination,
                 data.carrier,
+                deadlineTimestamp, // Thêm deadline timestamp
                 data.depositAmount // Thêm deposit amount
             );
             toast.success("Creating shipment with escrow deposit...");
-        } catch {
+        } catch (err) {
+            console.error(err);
             toast.error("Error occurred while creating shipment");
         }
     };
@@ -237,31 +256,59 @@ export function CreateShipment() {
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="depositAmount"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="flex items-center gap-2">
-                                            <Wallet className="w-4 h-4" />
-                                            Escrow Deposit (ETH) - Optional
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                step="0.001"
-                                                placeholder="0.2"
-                                                {...field}
-                                                className="h-12"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                        <p className="text-xs text-muted-foreground">
-                                            Amount in ETH to hold in escrow. Released to carrier on delivery, refunded on cancellation.
-                                        </p>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="deadline"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex items-center gap-2">
+                                                <Calendar className="w-4 h-4" />
+                                                Delivery Deadline
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="date"
+                                                    placeholder="Select a deadline"
+                                                    {...field}
+                                                    className="h-12"
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                            <p className="text-xs text-muted-foreground">
+                                                Expected delivery date. Escrow can be disputed after this date.
+                                            </p>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="depositAmount"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex items-center gap-2">
+                                                <Wallet className="w-4 h-4" />
+                                                Escrow Deposit (ETH)
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    step="0.001"
+                                                    placeholder="0.2"
+                                                    {...field}
+                                                    className="h-12"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                            <p className="text-xs text-muted-foreground">
+                                                Amount in ETH to hold in escrow. Released to carrier on delivery, refunded on cancellation.
+                                            </p>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
                             {/* Information Panel */}
                             <div className="bg-muted/50 rounded-lg p-4 border">
