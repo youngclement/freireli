@@ -38,19 +38,8 @@ export function RateCarrier() {
         try {
             rateCarrier(data.shipmentCode, data.rating, data.feedback);
             toast.success("Submitting carrier rating...");
-        } catch (error: any) {
-            console.error("Rating submission error:", error);
-
-            // Check for specific MetaMask error messages
-            if (error?.message?.includes("insufficient funds")) {
-                toast.error("Insufficient funds to complete transaction. Please add funds to your wallet.");
-            } else if (error?.message?.includes("user rejected")) {
-                toast.error("Transaction was rejected by user");
-            } else if (error?.message?.includes("Internal JSON-RPC error")) {
-                toast.error("MetaMask RPC error. Please check your network connection or try again later.");
-            } else {
-                toast.error(`Error submitting rating: ${error?.message || "Unknown error"}`);
-            }
+        } catch {
+            toast.error("Error submitting rating");
         }
     };
 
@@ -190,17 +179,6 @@ export function RateCarrier() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Network troubleshooting guidance */}
-                            <div className="mt-6 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-4 text-sm">
-                                <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Having trouble with transactions?</h4>
-                                <ul className="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-400">
-                                    <li>Ensure you have enough funds in your wallet to cover gas fees</li>
-                                    <li>Check that your MetaMask is connected to the Kairos testnet</li>
-                                    <li>Try refreshing the page or reconnecting your wallet</li>
-                                    <li>If problems persist, try using a different RPC endpoint in your wallet settings</li>
-                                </ul>
-                            </div>
                         </form>
                     </Form>
                 </CardContent>

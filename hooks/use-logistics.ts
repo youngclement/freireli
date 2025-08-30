@@ -215,23 +215,16 @@ export function useRateCarrier() {
     rating: number,
     feedback: string
   ) => {
-    try {
-      console.log(
-        `Rating carrier for shipment: ${shipmentCode} with rating: ${rating}`
-      );
-      writeContract({
-        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-        abi: LOGISTICS_ABI,
-        functionName: "rateCarrier",
-        args: [shipmentCode, rating, feedback],
-        // Cấu hình gas tối ưu cho Kairos testnet
-        gas: BigInt(500000), // Tăng gas limit để đảm bảo đủ gas
-        // Bỏ maxFeePerGas và maxPriorityFeePerGas để sử dụng giá trị mặc định từ mạng
-      });
-    } catch (error) {
-      console.error("Error in rateCarrier:", error);
-      throw error;
-    }
+    writeContract({
+      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+      abi: LOGISTICS_ABI,
+      functionName: "rateCarrier",
+      args: [shipmentCode, rating, feedback],
+      // Cấu hình gas đúng cách cho Kairos testnet
+      gas: BigInt(250000), // Gas limit hợp lý
+      maxFeePerGas: parseGwei("6"),
+      maxPriorityFeePerGas: parseGwei("1.5"),
+    });
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =

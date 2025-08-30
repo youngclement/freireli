@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useGetShipment, useGetShipmentEvents } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { AlertCircle, Calendar, CheckCircle2, Clock, Copy, MapPin, Package, RefreshCw, Search, Truck, User, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -25,7 +25,7 @@ const getStatusText = (status: StatusEnum) => {
         case StatusEnum.Canceled:
             return "Canceled";
         default:
-            return "Không xác định";
+            return "Undefined";
     }
 };
 
@@ -149,7 +149,7 @@ export function TrackShipmentAnimated() {
                             className="h-12 px-8 text-base font-semibold"
                         >
                             <Search className="w-4 h-4 mr-2" />
-                            Tra cứu
+                            Search
                         </Button>
                     </div>
                     {searchCode && !shipment && !isLoadingShipment && (
@@ -170,7 +170,7 @@ export function TrackShipmentAnimated() {
                         <div className="text-center">
                             <RefreshCw className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
                             <p className="text-lg font-medium">Loading shipment information...</p>
-                            <p className="text-sm text-muted-foreground">Vui lòng chờ trong giây lát</p>
+                            <p className="text-sm text-muted-foreground">Please wait a moment</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -191,7 +191,7 @@ export function TrackShipmentAnimated() {
                                             Shipment: {shipment.shipmentCode}
                                         </CardTitle>
                                         <CardDescription className="text-sm mt-2">
-                                            Created at: {format(new Date(Number(shipment.createdAt) * 1000), 'PPpp', { locale: vi })}
+                                            Created at: {format(new Date(Number(shipment.createdAt) * 1000), 'PPpp', { locale: enUS })}
                                         </CardDescription>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -206,7 +206,7 @@ export function TrackShipmentAnimated() {
                                             className="h-8"
                                         >
                                             <RefreshCw className="w-3 h-3 mr-2" />
-                                            Làm mới
+                                            Refresh
                                         </Button>
                                     </div>
                                 </div>
@@ -216,7 +216,7 @@ export function TrackShipmentAnimated() {
                                 {/* Progress Bar */}
                                 <div className="mb-6">
                                     <div className="flex justify-between mb-2">
-                                        <span className="text-sm font-medium">Tiến độ vận chuyển</span>
+                                        <span className="text-sm font-medium">Shipping Progress</span>
                                         <span className="text-sm text-muted-foreground">
                                             {shipment.currentStatus === StatusEnum.Pending && "0%"}
                                             {shipment.currentStatus === StatusEnum.InTransit && "50%"}
@@ -360,10 +360,10 @@ export function TrackShipmentAnimated() {
                                                             <h4 className="font-semibold text-sm">{event.eventType}</h4>
                                                             <div className="text-right">
                                                                 <div className="text-xs font-medium">
-                                                                    {format(new Date(Number(event.timestamp) * 1000), 'dd/MM/yyyy', { locale: vi })}
+                                                                    {format(new Date(Number(event.timestamp) * 1000), 'dd/MM/yyyy', { locale: enUS })}
                                                                 </div>
                                                                 <div className="text-xs text-muted-foreground">
-                                                                    {format(new Date(Number(event.timestamp) * 1000), 'HH:mm:ss', { locale: vi })}
+                                                                    {format(new Date(Number(event.timestamp) * 1000), 'HH:mm:ss', { locale: enUS })}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -400,7 +400,7 @@ export function TrackShipmentAnimated() {
                                 ) : (
                                     <div className="text-center py-12">
                                         <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                        <p className="text-lg font-medium mb-2">Chưa có sự kiện nào</p>
+                                        <p className="text-lg font-medium mb-2">No Events Yet</p>
                                         <p className="text-muted-foreground">
                                             No events have been recorded for this shipment yet. Please check again later.
                                         </p>
@@ -418,7 +418,7 @@ export function TrackShipmentAnimated() {
                     <CardContent className="p-6">
                         <h3 className="font-semibold mb-4 flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-primary" />
-                            Mẹo sử dụng
+                            Usage Tips
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div className="flex items-start gap-2">
