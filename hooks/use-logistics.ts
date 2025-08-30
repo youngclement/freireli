@@ -23,29 +23,45 @@ export function useCreateShipment() {
     destination: string,
     carrier: string,
     deadline: number, // Timestamp cho deadline
-    depositAmount?: string // Số Ether để deposit (dạng string, ví dụ: "0.2")
+    depositAmount?: string | bigint // Số Ether để deposit (dạng string, ví dụ: "0.2") or direct BigInt value
   ) => {
-    const depositWei = depositAmount ? parseEther(depositAmount) : BigInt(0);
+    // Handle both string and BigInt deposit amounts
+    let depositWei: bigint;
 
-    writeContract({
-      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: LOGISTICS_ABI,
-      functionName: "createShipment",
-      args: [
-        shipmentCode,
-        productName,
-        origin,
-        destination,
-        carrier as `0x${string}`,
-        BigInt(deadline),
-        depositWei,
-      ],
-      value: depositAmount ? parseEther(depositAmount) : undefined,
-      // Cấu hình gas đúng cách cho Kairos testnet
-      gas: BigInt(250000), // Gas limit hợp lý
-      maxFeePerGas: parseGwei("6"),
-      maxPriorityFeePerGas: parseGwei("1.5"),
-    });
+    if (typeof depositAmount === "string") {
+      depositWei = parseEther(depositAmount);
+    } else if (depositAmount !== undefined) {
+      // If it's already a BigInt
+      depositWei = BigInt(depositAmount);
+    } else {
+      depositWei = BigInt(0);
+    }
+
+    console.log(`Creating shipment with code: ${shipmentCode}`);
+    console.log(`Deposit amount: ${depositWei.toString()}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "createShipment",
+        args: [
+          shipmentCode,
+          productName,
+          origin,
+          destination,
+          carrier as `0x${string}`,
+          BigInt(deadline),
+          depositWei,
+        ],
+        value: depositWei,
+        // Cấu hình gas đúng cách cho Kairos testnet
+        gas: BigInt(500000), // Increased gas limit further
+      });
+    } catch (error) {
+      console.error("Error in createShipment:", error);
+      throw error;
+    }
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -113,16 +129,21 @@ export function useAddShipmentEvent() {
     eventType: string
   ) => {
     console.log(`Adding event: ${shipmentCode}, ${location}, ${eventType}`);
-    writeContract({
-      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: LOGISTICS_ABI,
-      functionName: "addShipmentEvent",
-      args: [shipmentCode, location, eventType],
-      // Cấu hình gas đúng cách cho Kairos testnet
-      gas: BigInt(250000), // Gas limit hợp lý
-      maxFeePerGas: parseGwei("6"),
-      maxPriorityFeePerGas: parseGwei("1.5"),
-    });
+    console.log(`Using contract address: ${LOGISTICS_CONTRACT_ADDRESS}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "addShipmentEvent",
+        args: [shipmentCode, location, eventType],
+        // Cấu hình gas đúng cách cho Kairos testnet
+        gas: BigInt(300000), // Tăng gas limit
+      });
+    } catch (error) {
+      console.error("Error in addShipmentEvent:", error);
+      throw error;
+    }
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -194,16 +215,23 @@ export function useRateCarrier() {
     rating: number,
     feedback: string
   ) => {
-    writeContract({
-      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: LOGISTICS_ABI,
-      functionName: "rateCarrier",
-      args: [shipmentCode, rating, feedback],
-      // Cấu hình gas đúng cách cho Kairos testnet
-      gas: BigInt(250000), // Gas limit hợp lý
-      maxFeePerGas: parseGwei("6"),
-      maxPriorityFeePerGas: parseGwei("1.5"),
-    });
+    try {
+      console.log(
+        `Rating carrier for shipment: ${shipmentCode} with rating: ${rating}`
+      );
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "rateCarrier",
+        args: [shipmentCode, rating, feedback],
+        // Cấu hình gas tối ưu cho Kairos testnet
+        gas: BigInt(500000), // Tăng gas limit để đảm bảo đủ gas
+        // Bỏ maxFeePerGas và maxPriorityFeePerGas để sử dụng giá trị mặc định từ mạng
+      });
+    } catch (error) {
+      console.error("Error in rateCarrier:", error);
+      throw error;
+    }
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =

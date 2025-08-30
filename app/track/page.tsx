@@ -1,11 +1,11 @@
-import { TrackShipment } from "@/components/logistics/track-shipment";
+import { TrackShipmentAnimated } from "@/components/logistics/track-shipment-animated";
 import Image from "next/image";
 
 export default function TrackPage() {
     return (
         <div className="min-h-screen">
             {/* Hero Section */}
-            <section className="relative py-12 px-4 overflow-hidden">
+            <section className="relative py-8 px-4 overflow-hidden">
                 {/* Background */}
                 <div className="absolute inset-0 z-0">
                     <Image
@@ -22,7 +22,7 @@ export default function TrackPage() {
                         <h1 className="text-4xl lg:text-5xl font-bold mb-4">
                             Track <span className="text-primary">Shipments</span>
                         </h1>
-                        <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                        <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
                             Check detailed status and shipping history with blockchain technology.
                             Accurate information, real-time updates 24/7.
                         </p>
@@ -51,14 +51,14 @@ export default function TrackPage() {
             </section>
 
             {/* Main Content */}
-            <section className="py-8 px-4">
+            <section className="py-6 px-4">
                 <div className="container mx-auto">
-                    <TrackShipment />
+                    <TrackShipmentAnimated />
                 </div>
             </section>
 
             {/* Help Section */}
-            <section className="py-12 px-4 bg-muted/30">
+            <section className="py-10 px-4 bg-muted/30">
                 <div className="container mx-auto">
                     <div className="text-center mb-8">
                         <h2 className="text-2xl font-bold mb-3">User Guide</h2>
@@ -112,7 +112,7 @@ export default function TrackPage() {
                             </div>
                             <h3 className="font-semibold mb-1 text-sm">View History</h3>
                             <p className="text-xs text-muted-foreground">
-                                Complete timeline of events
+                                See animated timeline of events
                             </p>
                         </div>
                     </div>

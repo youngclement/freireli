@@ -55,14 +55,17 @@ export function CreateShipment() {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
 
-        form.setValue("shipmentCode", "CODE1");
+        // Generate a random shipment code to avoid conflicts
+        const randomCode = "SHIP" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+        form.setValue("shipmentCode", randomCode);
         form.setValue("productName", "Electronics");
         form.setValue("origin", "Ho Chi Minh City");
         form.setValue("destination", "Tokyo");
-        form.setValue("carrier", "0x742d35Cc6635C0532925a3b8D39Cd9F5B1e4F9D1");
+        form.setValue("carrier", "0x2a2cB2F081b651D05B8302f599B102710E8355F5"); // Updated carrier address
         form.setValue("deadline", futureDate.toISOString().split('T')[0]);
         form.setValue("depositAmount", "0.2");
-        toast.success("Example data filled in!");
+        toast.success("Example data filled in with unique code: " + randomCode);
     };
 
     const onSubmit = async (data: CreateShipmentFormData) => {
@@ -71,19 +74,30 @@ export function CreateShipment() {
             const deadlineDate = new Date(data.deadline);
             const deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000);
 
+            // Log the data being sent
+            console.log("Submitting shipment with data:", {
+                code: data.shipmentCode,
+                product: data.productName,
+                origin: data.origin,
+                destination: data.destination,
+                carrier: data.carrier,
+                deadline: deadlineTimestamp,
+                deposit: data.depositAmount
+            });
+
             createShipment(
                 data.shipmentCode,
                 data.productName,
                 data.origin,
                 data.destination,
                 data.carrier,
-                deadlineTimestamp, // Thêm deadline timestamp
-                data.depositAmount // Thêm deposit amount
+                deadlineTimestamp,
+                data.depositAmount
             );
-            toast.success("Creating shipment with escrow deposit...");
+            toast.success(`Creating shipment ${data.shipmentCode} with escrow deposit...`);
         } catch (err) {
-            console.error(err);
-            toast.error("Error occurred while creating shipment");
+            console.error("Error in onSubmit:", err);
+            toast.error(`Error occurred: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
     };
 

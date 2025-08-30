@@ -61,8 +61,16 @@ export function ManageShipment() {
     const onAddEvent = async (data: AddEventFormData) => {
         try {
             console.log(`Adding shipment event: ${data.shipmentCode}, ${data.location}, ${data.eventType}`);
+
+            // Kiểm tra dữ liệu đầu vào
+            if (!data.shipmentCode || !data.location || !data.eventType) {
+                toast.error("All fields are required");
+                return;
+            }
+
+            // Gọi hàm addEvent từ hook
             addEvent(data.shipmentCode, data.location, data.eventType);
-            toast.success("Adding event...");
+            toast.success(`Adding event to shipment ${data.shipmentCode}...`);
         } catch (error) {
             console.error("Error adding event:", error);
             toast.error(`Error occurred while adding event: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -211,13 +219,13 @@ export function ManageShipment() {
                                                             <SelectValue placeholder="Select event type" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="pickup">📦 Picked up</SelectItem>
-                                                            <SelectItem value="in_transit">🚛 In transit</SelectItem>
-                                                            <SelectItem value="warehouse_arrival">🏭 Arrived at warehouse</SelectItem>
-                                                            <SelectItem value="out_for_delivery">🚚 Out for delivery</SelectItem>
-                                                            <SelectItem value="delivery_complete">✅ Delivery complete</SelectItem>
-                                                            <SelectItem value="delivery_failed">❌ Failed delivery</SelectItem>
-                                                            <SelectItem value="returned">↩️ Returned</SelectItem>
+                                                            <SelectItem value="PickedUp">📦 Picked up</SelectItem>
+                                                            <SelectItem value="InTransit">🚛 In transit</SelectItem>
+                                                            <SelectItem value="ArrivedHub">🏭 Arrived at warehouse</SelectItem>
+                                                            <SelectItem value="OutForDelivery">🚚 Out for delivery</SelectItem>
+                                                            <SelectItem value="DeliveryComplete">✅ Delivery complete</SelectItem>
+                                                            <SelectItem value="DeliveryFailed">❌ Failed delivery</SelectItem>
+                                                            <SelectItem value="Returned">↩️ Returned</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </FormControl>

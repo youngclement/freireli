@@ -11,7 +11,7 @@ export const config = {
   contract: {
     logisticsAddress:
       process.env.NEXT_PUBLIC_LOGISTICS_CONTRACT_ADDRESS ||
-      "0x77C990b9372F6f3E69a06f840bD6dccE56311322",
+      "0x5c872245116f8ec780dea1156f35bd43b4084871", // Updated to match the contract address used in RemixIDE
   },
 
   // Network
