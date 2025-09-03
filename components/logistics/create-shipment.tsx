@@ -304,7 +304,7 @@ export function CreateShipment() {
                                         <FormItem>
                                             <FormLabel className="flex items-center gap-2">
                                                 <Wallet className="w-4 h-4" />
-                                                Escrow Deposit (ETH)
+                                                Escrow Deposit (KAIA)
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
@@ -317,7 +317,7 @@ export function CreateShipment() {
                                             </FormControl>
                                             <FormMessage />
                                             <p className="text-xs text-muted-foreground">
-                                                Amount in ETH to hold in escrow. Released to carrier on delivery, refunded on cancellation.
+                                                Amount in KAIA to hold in escrow. Released to carrier on delivery, refunded on cancellation.
                                             </p>
                                         </FormItem>
                                     )}
@@ -341,7 +341,7 @@ export function CreateShipment() {
                                         <strong>• Auto Refund:</strong> Refunded to you on &ldquo;Canceled&rdquo; status
                                     </div>
                                     <div>
-                                        <strong>• Transaction Fee:</strong> About 0.001 - 0.005 ETH
+                                        <strong>• Transaction Fee:</strong> About 0.001 - 0.005 KAIA
                                     </div>
                                     <div className="md:col-span-2">
                                         <strong>• Security:</strong> Smart contract ensures transparent and secure transactions

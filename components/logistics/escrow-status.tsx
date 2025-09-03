@@ -103,7 +103,7 @@ export function EscrowStatus({ shipmentCode }: EscrowStatusProps) {
                     <div className="flex-1">
                         <CardTitle className="text-lg">Escrow Status</CardTitle>
                         <CardDescription>
-                            Deposit: {formatEther(depositAmount)} ETH
+                            Deposit: {formatEther(depositAmount)} KAIA
                         </CardDescription>
                     </div>
                     <Badge className={escrowInfo.color}>
@@ -119,7 +119,7 @@ export function EscrowStatus({ shipmentCode }: EscrowStatusProps) {
                     <div className="bg-muted/50 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-medium">Deposit Amount</span>
-                            <span className="font-mono font-bold">{formatEther(depositAmount)} ETH</span>
+                            <span className="font-mono font-bold">{formatEther(depositAmount)} KAIA</span>
                         </div>
                         <p className="text-sm text-muted-foreground">{escrowInfo.description}</p>
                     </div>

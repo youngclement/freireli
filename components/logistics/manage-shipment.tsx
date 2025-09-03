@@ -415,7 +415,7 @@ export function ManageShipment() {
                         <strong>Access:</strong> Admin/Carrier
                     </div>
                     <div>
-                        <strong>Gas Fee:</strong> ~0.002 ETH
+                        <strong>Gas Fee:</strong> ~0.002 KAIA
                     </div>
                     <div>
                         <strong>Confirmation:</strong> 1-3 minutes
