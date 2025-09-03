@@ -220,10 +220,6 @@ export function useRateCarrier() {
       abi: LOGISTICS_ABI,
       functionName: "rateCarrier",
       args: [shipmentCode, rating, feedback],
-      // Cấu hình gas đúng cách cho Kairos testnet
-      gas: BigInt(250000), // Gas limit hợp lý
-      maxFeePerGas: parseGwei("6"),
-      maxPriorityFeePerGas: parseGwei("1.5"),
     });
   };
 
