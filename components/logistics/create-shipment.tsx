@@ -51,7 +51,6 @@ export function CreateShipment() {
 
     // Quick fill examples
     const quickFillExample = () => {
-        // Set deadline to 7 days from now
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
 
@@ -62,7 +61,7 @@ export function CreateShipment() {
         form.setValue("productName", "Electronics");
         form.setValue("origin", "Ho Chi Minh City");
         form.setValue("destination", "Tokyo");
-        form.setValue("carrier", "0x2a2cB2F081b651D05B8302f599B102710E8355F5"); // Updated carrier address
+        form.setValue("carrier", "0x2a2cB2F081b651D05B8302f599B102710E8355F5"); 
         form.setValue("deadline", futureDate.toISOString().split('T')[0]);
         form.setValue("depositAmount", "0.2");
         toast.success("Example data filled in with unique code: " + randomCode);
@@ -74,16 +73,16 @@ export function CreateShipment() {
             const deadlineDate = new Date(data.deadline);
             const deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000);
 
-            // Log the data being sent
-            console.log("Submitting shipment with data:", {
-                code: data.shipmentCode,
-                product: data.productName,
-                origin: data.origin,
-                destination: data.destination,
-                carrier: data.carrier,
-                deadline: deadlineTimestamp,
-                deposit: data.depositAmount
-            });
+            // // Log the data being sent
+            // console.log("Submitting shipment with data:", {
+            //     code: data.shipmentCode,
+            //     product: data.productName,
+            //     origin: data.origin,
+            //     destination: data.destination,
+            //     carrier: data.carrier,
+            //     deadline: deadlineTimestamp,
+            //     deposit: data.depositAmount
+            // });
 
             createShipment(
                 data.shipmentCode,

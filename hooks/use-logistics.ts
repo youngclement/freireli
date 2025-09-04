@@ -22,8 +22,8 @@ export function useCreateShipment() {
     origin: string,
     destination: string,
     carrier: string,
-    deadline: number, // Timestamp cho deadline
-    depositAmount?: string | bigint // Số Ether để deposit (dạng string, ví dụ: "0.2") or direct BigInt value
+    deadline: number, 
+    depositAmount?: string | bigint 
   ) => {
     // Handle both string and BigInt deposit amounts
     let depositWei: bigint;
@@ -55,7 +55,6 @@ export function useCreateShipment() {
           depositWei,
         ],
         value: depositWei,
-        // Cấu hình gas đúng cách cho Kairos testnet
         gas: BigInt(500000), // Increased gas limit further
       });
     } catch (error) {
@@ -79,7 +78,6 @@ export function useCreateShipment() {
   };
 }
 
-// Hook để lấy thông tin shipment
 export function useGetShipment(shipmentCode: string) {
   const { data, isError, isLoading, refetch } = useReadContract({
     address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,

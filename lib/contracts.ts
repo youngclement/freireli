@@ -6,7 +6,6 @@ export const LOGISTICS_CONTRACT_ADDRESS = config.contract.logisticsAddress;
 
 export const LOGISTICS_ABI = logisticsAbi;
 
-// Enum cho Status - theo thứ tự trong smart contract
 export enum StatusEnum {
   Pending = 0,
   InTransit = 1,
