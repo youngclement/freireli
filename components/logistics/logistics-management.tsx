@@ -462,7 +462,7 @@ export function LogisticsManagement() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
+                        <span className="text-lg">⚙️</span>
                         Logistics Management Center
                     </CardTitle>
                     <CardDescription>
@@ -473,10 +473,10 @@ export function LogisticsManagement() {
                 <CardContent>
                     <Tabs defaultValue="workflow" className="w-full">
                         <TabsList className="grid w-full grid-cols-4">
-                            <TabsTrigger value="workflow">Workflow</TabsTrigger>
-                            <TabsTrigger value="actors">Actors</TabsTrigger>
-                            <TabsTrigger value="events">Events</TabsTrigger>
-                            <TabsTrigger value="admin">Admin</TabsTrigger>
+                            <TabsTrigger value="workflow">🔄 Workflow</TabsTrigger>
+                            <TabsTrigger value="actors">👥 Actors</TabsTrigger>
+                            <TabsTrigger value="events">📝 Events</TabsTrigger>
+                            <TabsTrigger value="admin">🔧 Admin</TabsTrigger>
                         </TabsList>
 
                         {/* WORKFLOW TAB */}
@@ -487,7 +487,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Edit className="w-4 h-4" />
+                                            <span className="text-lg">✏️</span>
                                             Update Status
                                         </CardTitle>
                                     </CardHeader>
@@ -556,7 +556,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Building2 className="w-4 h-4 text-orange-600" />
+                                            <span className="text-orange-600 text-lg">🏭</span>
                                             Warehouse Confirm
                                         </CardTitle>
                                     </CardHeader>
@@ -588,7 +588,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <ShieldCheck className="w-4 h-4 text-purple-600" />
+                                            <span className="text-purple-600 text-lg">🛡️</span>
                                             Quality Approve
                                         </CardTitle>
                                     </CardHeader>
@@ -620,7 +620,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Truck className="w-4 h-4 text-yellow-600" />
+                                            <span className="text-yellow-600 text-lg">🚛</span>
                                             Start Transit
                                         </CardTitle>
                                     </CardHeader>
@@ -652,7 +652,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                            <span className="text-green-600 text-lg">✅</span>
                                             Confirm Delivery
                                         </CardTitle>
                                     </CardHeader>
@@ -684,7 +684,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Star className="w-4 h-4 text-blue-600" />
+                                            <span className="text-blue-600 text-lg">⭐</span>
                                             Rate/Dispute
                                         </CardTitle>
                                     </CardHeader>
@@ -774,7 +774,7 @@ export function LogisticsManagement() {
                                 <Card className="md:col-span-2 lg:col-span-3">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <Users className="w-5 h-5" />
+                                            <span className="text-lg">👥</span>
                                             Set Warehouse Manager & Quality Inspector
                                         </CardTitle>
                                         <CardDescription>Assign both actors at once</CardDescription>
@@ -830,7 +830,7 @@ export function LogisticsManagement() {
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Users className="mr-2 w-4 h-4" />
+                                                                <span className="mr-2 text-lg">👥</span>
                                                                 Set Both Actors
                                                             </>
                                                         )}
@@ -845,7 +845,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Building2 className="w-4 h-4 text-orange-600" />
+                                            <span className="text-orange-600 text-lg">🏭</span>
                                             Warehouse Manager
                                         </CardTitle>
                                     </CardHeader>
@@ -890,7 +890,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <ShieldCheck className="w-4 h-4 text-purple-600" />
+                                            <span className="text-purple-600 text-lg">🛡️</span>
                                             Quality Inspector
                                         </CardTitle>
                                     </CardHeader>
@@ -941,7 +941,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Plus className="w-4 h-4" />
+                                            <span className="text-lg">➕</span>
                                             General Event
                                         </CardTitle>
                                     </CardHeader>
@@ -1201,7 +1201,7 @@ export function LogisticsManagement() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <AlertTriangle className="w-5 h-5 text-red-600" />
+                                            <span className="text-red-600 text-lg">❌</span>
                                             Cancel Shipment
                                         </CardTitle>
                                         <Badge variant="destructive" className="w-fit">Admin Only</Badge>

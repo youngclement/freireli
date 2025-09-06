@@ -15,14 +15,9 @@ import {
     useGetShipment, 
     useGetShipmentEvents, 
     useGetFullTrackingInfo,
-    useAddShipmentEvent,
-    useAddTransitEvent,
-    useAddWarehouseEvent,
-    useAddQualityEvent,
-    useUpdateLocation
+    useGetCarrierStats
 } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
-import { toast } from "sonner";
+import { StatusEnum, CarrierStats } from "@/lib/contracts";
 import { 
     Search, 
     MapPin, 
@@ -36,8 +31,12 @@ import {
     XCircle, 
     AlertCircle,
     Activity,
-    Plus,
-    Loader2
+    Loader2,
+    Star,
+    Home,
+    Warehouse,
+    Shield,
+    Navigation
 } from "lucide-react";
 import { formatEther } from "viem";
 
@@ -45,33 +44,7 @@ const trackingSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
 });
 
-const eventSchema = z.object({
-    shipmentCode: z.string().min(1, "Shipment code is required"),
-    location: z.string().min(1, "Location is required"),
-    eventType: z.string().min(1, "Event type is required"),
-});
-
-const transitEventSchema = z.object({
-    shipmentCode: z.string().min(1, "Shipment code is required"),
-    location: z.string().min(1, "Location is required"),
-    note: z.string().min(1, "Note is required"),
-});
-
-const simpleEventSchema = z.object({
-    shipmentCode: z.string().min(1, "Shipment code is required"),
-    eventType: z.string().min(1, "Event type is required"),
-});
-
-const locationUpdateSchema = z.object({
-    shipmentCode: z.string().min(1, "Shipment code is required"),
-    location: z.string().min(1, "Location is required"),
-});
-
 type TrackingFormData = z.infer<typeof trackingSchema>;
-type EventFormData = z.infer<typeof eventSchema>;
-type TransitEventFormData = z.infer<typeof transitEventSchema>;
-type SimpleEventFormData = z.infer<typeof simpleEventSchema>;
-type LocationUpdateFormData = z.infer<typeof locationUpdateSchema>;
 
 const getStatusText = (status: StatusEnum) => {
     switch (status) {
@@ -84,7 +57,7 @@ const getStatusText = (status: StatusEnum) => {
         case StatusEnum.InTransit:
             return "In Transit";
         case StatusEnum.Delivered:
-            return "Delivered";
+            return "In Transit";
         case StatusEnum.Completed:
             return "Completed";
         case StatusEnum.Disputed:
@@ -153,6 +126,7 @@ const getProgressValue = (status: StatusEnum) => {
         case StatusEnum.InTransit:
             return 75;
         case StatusEnum.Delivered:
+            return 90;
         case StatusEnum.Completed:
             return 100;
         case StatusEnum.Disputed:
@@ -175,12 +149,132 @@ const getEventIcon = (eventType: string) => {
 
 const getEventColor = (eventType: string) => {
     const lowerEventType = eventType.toLowerCase();
-    if (lowerEventType.includes("warehouse")) return "border-orange-200 bg-orange-50";
-    if (lowerEventType.includes("quality")) return "border-purple-200 bg-purple-50";
-    if (lowerEventType.includes("transit")) return "border-yellow-200 bg-yellow-50";
-    if (lowerEventType.includes("delivery")) return "border-green-200 bg-green-50";
-    if (lowerEventType.includes("location")) return "border-blue-200 bg-blue-50";
-    return "border-gray-200 bg-gray-50";
+    if (lowerEventType.includes("warehouse")) return "border-orange-300 bg-orange-100 dark:border-orange-700 dark:bg-orange-900/30";
+    if (lowerEventType.includes("quality")) return "border-purple-300 bg-purple-100 dark:border-purple-700 dark:bg-purple-900/30";
+    if (lowerEventType.includes("transit")) return "border-yellow-300 bg-yellow-100 dark:border-yellow-700 dark:bg-yellow-900/30";
+    if (lowerEventType.includes("delivery")) return "border-green-300 bg-green-100 dark:border-green-700 dark:bg-green-900/30";
+    if (lowerEventType.includes("location")) return "border-blue-300 bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30";
+    return "border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800/30";
+};
+
+const formatEventType = (eventType: string) => {
+    // Convert snake_case to readable text
+    const formatted = eventType
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    
+    // Custom mappings for better readability
+    const mappings: { [key: string]: string } = {
+        'Warehouse Confirmed': 'Warehouse Received',
+        'Quality Approved': 'Quality Inspected', 
+        'Transit Started': 'Transit Started',
+        'Location Updated': 'Location Update',
+        'Delivery Confirmed': 'Delivered'
+    };
+    
+    return mappings[formatted] || formatted;
+};
+
+const truncateAddress = (address: string, prefixLength = 6, suffixLength = 4) => {
+    if (!address || address.length <= prefixLength + suffixLength) return address;
+    return `${address.slice(0, prefixLength)}...${address.slice(-suffixLength)}`;
+};
+
+const getRouteIcon = (type: string) => {
+    switch (type) {
+        case 'origin':
+            return <span className="text-blue-500 text-lg">🏠</span>;
+        case 'warehouse':
+            return <span className="text-orange-500 text-lg">🏭</span>;
+        case 'quality':
+            return <span className="text-purple-500 text-lg">🛡️</span>;
+        case 'transit':
+            return <span className="text-yellow-500 text-lg">🚛</span>;
+        case 'destination':
+            return <span className="text-green-500 text-lg">🎯</span>;
+        default:
+            return <span className="text-gray-500 text-lg">📍</span>;
+    }
+};
+
+const getJourneySteps = (events: any[], origin: string, destination: string) => {
+    const steps: Array<{location: string, type: string, completed: boolean, additionalEvents: string[], address?: string}> = [
+        { location: origin, type: 'origin', completed: true, additionalEvents: [] }
+    ];
+    
+    // Find warehouse location and events
+    const warehouseEvents = events.filter(e => e.eventType.toLowerCase().includes('warehouse'));
+    if (warehouseEvents.length > 0) {
+        const warehouseLocation = warehouseEvents[0].location;
+        const warehouseAddress = warehouseEvents[0].updatedBy;
+        const additionalWarehouseEvents = warehouseEvents.slice(1).map(e => formatEventType(e.eventType));
+        steps.push({ 
+            location: warehouseLocation, 
+            type: 'warehouse', 
+            completed: true,
+            additionalEvents: additionalWarehouseEvents,
+            address: warehouseAddress
+        });
+    }
+    
+    // Find quality control location and events
+    const qualityEvents = events.filter(e => e.eventType.toLowerCase().includes('quality'));
+    if (qualityEvents.length > 0) {
+        const qualityLocation = qualityEvents[0].location;
+        const qualityAddress = qualityEvents[0].updatedBy;
+        
+        // Get all events at the same quality control location (not just quality events)
+        const allQualityLocationEvents = events.filter(e => e.location === qualityLocation);
+        // Get additional events (excluding the standard quality events)
+        const additionalQualityEvents = allQualityLocationEvents
+            .filter(e => !['quality_approved', 'quality_inspected'].includes(e.eventType.toLowerCase()))
+            .map(e => formatEventType(e.eventType));
+        
+        steps.push({ 
+            location: qualityLocation, 
+            type: 'quality', 
+            completed: true,
+            additionalEvents: additionalQualityEvents,
+            address: qualityAddress
+        });
+    }
+    
+    // Find transit locations from events
+    const transitEvents = events.filter(e => 
+        e.eventType.toLowerCase().includes('transit') || 
+        e.eventType.toLowerCase().includes('location')
+    );
+    
+    transitEvents.forEach(event => {
+        if (event.location && event.location !== origin && event.location !== destination) {
+            // Check if this location already exists
+            const existingStepIndex = steps.findIndex(step => step.location === event.location);
+            if (existingStepIndex === -1) {
+                steps.push({ 
+                    location: event.location, 
+                    type: 'transit', 
+                    completed: true,
+                    additionalEvents: [],
+                    address: event.updatedBy
+                });
+            }
+        }
+    });
+    
+    // Add destination
+    const deliveryEvent = events.find(e => e.eventType.toLowerCase().includes('delivery'));
+    steps.push({ 
+        location: destination, 
+        type: 'destination', 
+        completed: !!deliveryEvent,
+        additionalEvents: [],
+        address: deliveryEvent?.updatedBy
+    });
+    
+    return steps;
 };
 
 export function TrackShipmentAnimated() {
@@ -188,42 +282,13 @@ export function TrackShipmentAnimated() {
     const { shipment, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(shipmentCode);
     const { events, isLoading: eventsLoading, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
     const { trackingInfo, isLoading: trackingLoading, refetch: refetchTracking } = useGetFullTrackingInfo(shipmentCode);
-
-    // Event hooks
-    const { addShipmentEvent, isPending: isAddingEvent } = useAddShipmentEvent();
-    const { addTransitEvent, isPending: isAddingTransitEvent } = useAddTransitEvent();
-    const { addWarehouseEvent, isPending: isAddingWarehouseEvent } = useAddWarehouseEvent();
-    const { addQualityEvent, isPending: isAddingQualityEvent } = useAddQualityEvent();
-    const { updateLocation, isPending: isUpdatingLocation } = useUpdateLocation();
+    
+    // Get carrier stats
+    const { data: carrierStats } = useGetCarrierStats(shipment?.carrier);
 
     const trackingForm = useForm<TrackingFormData>({
         resolver: zodResolver(trackingSchema),
         defaultValues: { shipmentCode: "" },
-    });
-
-    const eventForm = useForm<EventFormData>({
-        resolver: zodResolver(eventSchema),
-        defaultValues: { shipmentCode: "", location: "", eventType: "" },
-    });
-
-    const transitEventForm = useForm<TransitEventFormData>({
-        resolver: zodResolver(transitEventSchema),
-        defaultValues: { shipmentCode: "", location: "", note: "" },
-    });
-
-    const warehouseEventForm = useForm<SimpleEventFormData>({
-        resolver: zodResolver(simpleEventSchema),
-        defaultValues: { shipmentCode: "", eventType: "" },
-    });
-
-    const qualityEventForm = useForm<SimpleEventFormData>({
-        resolver: zodResolver(simpleEventSchema),
-        defaultValues: { shipmentCode: "", eventType: "" },
-    });
-
-    const locationForm = useForm<LocationUpdateFormData>({
-        resolver: zodResolver(locationUpdateSchema),
-        defaultValues: { shipmentCode: "", location: "" },
     });
 
     const onSearch = (data: TrackingFormData) => {
@@ -231,61 +296,6 @@ export function TrackShipmentAnimated() {
         refetchShipment();
         refetchEvents();
         refetchTracking();
-    };
-
-    const onAddShipmentEvent = async (data: EventFormData) => {
-        try {
-            await addShipmentEvent(data.shipmentCode, data.location, data.eventType);
-            toast.success("Event added successfully!");
-            eventForm.reset();
-            refetchEvents();
-        } catch (error) {
-            toast.error("Failed to add event");
-        }
-    };
-
-    const onAddTransitEvent = async (data: TransitEventFormData) => {
-        try {
-            await addTransitEvent(data.shipmentCode, data.location, data.note);
-            toast.success("Transit event added successfully!");
-            transitEventForm.reset();
-            refetchEvents();
-        } catch (error) {
-            toast.error("Failed to add transit event");
-        }
-    };
-
-    const onAddWarehouseEvent = async (data: SimpleEventFormData) => {
-        try {
-            await addWarehouseEvent(data.shipmentCode, data.eventType);
-            toast.success("Warehouse event added successfully!");
-            warehouseEventForm.reset();
-            refetchEvents();
-        } catch (error) {
-            toast.error("Failed to add warehouse event");
-        }
-    };
-
-    const onAddQualityEvent = async (data: SimpleEventFormData) => {
-        try {
-            await addQualityEvent(data.shipmentCode, data.eventType);
-            toast.success("Quality event added successfully!");
-            qualityEventForm.reset();
-            refetchEvents();
-        } catch (error) {
-            toast.error("Failed to add quality event");
-        }
-    };
-
-    const onUpdateLocation = async (data: LocationUpdateFormData) => {
-        try {
-            await updateLocation(data.shipmentCode, data.location);
-            toast.success("Location updated successfully!");
-            locationForm.reset();
-            refetchShipment();
-        } catch (error) {
-            toast.error("Failed to update location");
-        }
     };
 
     return (
@@ -333,69 +343,149 @@ export function TrackShipmentAnimated() {
                 </CardContent>
             </Card>
 
-            {/* Shipment Info Section */}
+            {/* Top Info Section with Status and Progress */}
+            {shipment && (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <Package className="w-6 h-6" />
+                                <div>
+                                    <h2 className="text-xl font-bold">Shipment #{shipment.shipmentCode}</h2>
+                                    <p className="text-sm text-muted-foreground">{shipment.productName}</p>
+                                </div>
+                            </div>
+                            <Badge className={`${getStatusColor(shipment.currentStatus)} flex items-center gap-1`}>
+                                {getStatusIcon(shipment.currentStatus)}
+                                {getStatusText(shipment.currentStatus)}
+                            </Badge>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                                <span>Progress</span>
+                                <span>{getProgressValue(shipment.currentStatus)}%</span>
+                            </div>
+                            <Progress 
+                                value={getProgressValue(shipment.currentStatus)} 
+                                className="h-3"
+                            />
+                        </div>
+
+                        {/* Journey Route */}
+                        <div className="mt-6">
+                            <h3 className="font-medium mb-3 flex items-center gap-2">
+                                <span className="text-lg">🛣️</span>
+                                Shipping Route
+                            </h3>
+                            {events && events.length > 0 ? (
+                                <div className="space-y-3">
+                                    {getJourneySteps(events, shipment.origin, shipment.destination).map((step, index) => (
+                                        <div key={index}>
+                                            {step.address ? (
+                                                // Layout with address (vertical)
+                                                <div className="flex items-start gap-3">
+                                                    <div className="mt-1">
+                                                        {getRouteIcon(step.type)}
+                                                    </div>
+                                                    <div className="flex-1 space-y-1">
+                                                        <div className={`text-sm font-medium ${step.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                                            {step.location}
+                                                            {step.type === 'warehouse' && ` (Warehouse${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                            {step.type === 'quality' && ` (Quality Control${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                            {step.type === 'origin' && ' (Origin)'}
+                                                            {step.type === 'destination' && ' (Destination)'}
+                                                            {step.type === 'transit' && ` (Transit${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground font-mono">
+                                                            {step.address}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                // Layout without address (horizontal)
+                                                <div className="flex items-center gap-3">
+                                                    {getRouteIcon(step.type)}
+                                                    <span className={`text-sm font-medium ${step.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                                        {step.location}
+                                                        {step.type === 'warehouse' && ` (Warehouse${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                        {step.type === 'quality' && ` (Quality Control${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                        {step.type === 'origin' && ' (Origin)'}
+                                                        {step.type === 'destination' && ' (Destination)'}
+                                                        {step.type === 'transit' && ` (Transit${step.additionalEvents.length > 0 ? `, ${step.additionalEvents.join(', ')}` : ''})`}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                                    <span className="text-sm">{shipment.origin} (Origin)</span>
+                                    <div className="w-px h-4 bg-gray-300" />
+                                    <div className="w-3 h-3 rounded-full bg-gray-300 border-2 border-gray-400" />
+                                    <span className="text-sm text-muted-foreground">{shipment.destination} (Destination)</span>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Main Content - Two Column Layout */}
             {shipment && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Main Shipment Info */}
-                    <Card className="lg:col-span-2">
+                    {/* Left Column - Shipment Details */}
+                    <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">
-                                    <Package className="w-5 h-5" />
-                                    Shipment #{shipment.shipmentCode}
-                                </CardTitle>
-                                <Badge className={`${getStatusColor(shipment.currentStatus)} flex items-center gap-1`}>
-                                    {getStatusIcon(shipment.currentStatus)}
-                                    {getStatusText(shipment.currentStatus)}
-                                </Badge>
-                            </div>
+                            <CardTitle className="flex items-center gap-2">
+                                <Package className="w-5 h-5" />
+                                Shipment Details
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Progress Bar */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm text-muted-foreground">
-                                    <span>Progress</span>
-                                    <span>{getProgressValue(shipment.currentStatus)}%</span>
+                        <CardContent className="space-y-4">
+                            {/* Product and Basic Info */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">📦</span>
+                                    <span className="font-medium">Product:</span>
+                                    <span>{shipment.productName}</span>
                                 </div>
-                                <Progress 
-                                    value={getProgressValue(shipment.currentStatus)} 
-                                    className="h-2"
-                                />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">🚛</span>
+                                    <span className="font-medium">Carrier:</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono text-sm">{truncateAddress(shipment.carrier)}</span>
+                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                            (<span className="text-yellow-500">⭐</span>
+                                            {carrierStats && (carrierStats as CarrierStats).ratingCount > 0 
+                                                ? `${(Number((carrierStats as CarrierStats).totalRatingPoints) / Number((carrierStats as CarrierStats).ratingCount)).toFixed(1)}/5` 
+                                                : '0/5'} pts)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">📅</span>
+                                    <span className="font-medium">Created:</span>
+                                    <span>{new Date(Number(shipment.createdAt) * 1000).toLocaleString()}</span>
+                                </div>
                             </div>
 
-                            {/* Shipment Details Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <Package className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-medium">Product:</span>
-                                        <span>{shipment.productName}</span>
+                            <Separator />
+
+                            {/* Financial Info */}
+                            <div className="space-y-3">
+                                <h4 className="font-medium">💰 Financial Details</h4>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span>Deposit Amount:</span>
+                                        <span className="font-mono">{formatEther(shipment.depositAmount)} ETH</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-medium">Origin:</span>
-                                        <span>{shipment.origin}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-medium">Destination:</span>
-                                        <span>{shipment.destination}</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <Truck className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-medium">Carrier:</span>
-                                        <span className="font-mono text-sm">{shipment.carrier}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-medium">Created:</span>
-                                        <span>{new Date(Number(shipment.createdAt) * 1000).toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium">Deposit:</span>
-                                        <span>{formatEther(shipment.depositAmount)} ETH</span>
+                                    <div className="flex justify-between">
+                                        <span>Shipping Fee:</span>
+                                        <span className="font-mono">{formatEther(shipment.shippingFee)} ETH</span>
                                     </div>
                                 </div>
                             </div>
@@ -403,180 +493,106 @@ export function TrackShipmentAnimated() {
                             {/* Actors Info */}
                             {(shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" || 
                               shipment.qualityInspector !== "0x0000000000000000000000000000000000000000") && (
-                                <div className="border rounded-lg p-4 bg-muted/50">
-                                    <h4 className="font-medium mb-3 flex items-center gap-2">
-                                        <Building2 className="w-4 h-4" />
-                                        Assigned Actors
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                        {shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" && (
-                                            <div>
-                                                <span className="font-medium">Warehouse Manager:</span>
-                                                <div className="font-mono text-xs break-all">{shipment.warehouseManager}</div>
-                                            </div>
-                                        )}
-                                        {shipment.qualityInspector !== "0x0000000000000000000000000000000000000000" && (
-                                            <div>
-                                                <span className="font-medium">Quality Inspector:</span>
-                                                <div className="font-mono text-xs break-all">{shipment.qualityInspector}</div>
-                                            </div>
-                                        )}
+                                <>
+                                    <Separator />
+                                    <div className="space-y-3">
+                                        <h4 className="font-medium flex items-center gap-2">
+                                            <span className="text-lg">👥</span>
+                                            Assigned Actors
+                                        </h4>
+                                        <div className="space-y-2 text-sm">
+                                            {shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" && (
+                                                <div>
+                                                    <span className="font-medium">🏭 Warehouse Manager:</span>
+                                                    <div className="font-mono text-xs mt-1 p-2 bg-muted rounded break-all">
+                                                        {shipment.warehouseManager}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {shipment.qualityInspector !== "0x0000000000000000000000000000000000000000" && (
+                                                <div>
+                                                    <span className="font-medium">🛡️ Quality Inspector:</span>
+                                                    <div className="font-mono text-xs mt-1 p-2 bg-muted rounded break-all">
+                                                        {shipment.qualityInspector}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                </>
+                            )}
+
+                            {/* Rating and Feedback */}
+                            {shipment.rating > 0 && (
+                                <>
+                                    <Separator />
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium">⭐ Rating & Feedback</h4>
+                                        <div className="text-sm">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span>Rating:</span>
+                                                <span className="font-bold">{shipment.rating}/5</span>
+                                            </div>
+                                            {shipment.feedback && (
+                                                <div>
+                                                    <span className="font-medium">Feedback:</span>
+                                                    <p className="text-muted-foreground mt-1">{shipment.feedback}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
                             )}
                         </CardContent>
                     </Card>
-                </div>
-            )}
 
-            {/* Events Timeline */}
-            {events && events.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Activity className="w-5 h-5" />
-                            Shipment Timeline
-                        </CardTitle>
-                        <CardDescription>
-                            Detailed tracking events for this shipment
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {events.map((event, index) => (
-                                <div key={index} className={`border rounded-lg p-4 ${getEventColor(event.eventType)}`}>
-                                    <div className="flex items-start gap-3">
-                                        <div className="mt-1">
-                                            {getEventIcon(event.eventType)}
-                                        </div>
-                                        <div className="flex-1 space-y-1">
-                                            <div className="flex items-center justify-between">
-                                                <h4 className="font-medium">{event.eventType}</h4>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {new Date(Number(event.timestamp) * 1000).toLocaleString()}
-                                                </span>
-                                            </div>
-                                            {event.location && (
-                                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                                    <MapPin className="w-3 h-3" />
-                                                    {event.location}
+                    {/* Right Column - Events Timeline */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="w-5 h-5" />
+                                Shipment Timeline
+                            </CardTitle>
+                            <CardDescription>
+                                Detailed tracking events for this shipment
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {events && events.length > 0 ? (
+                                <div className="space-y-4">
+                                    {events.map((event, index) => (
+                                        <div key={index} className={`border rounded-lg p-4 ${getEventColor(event.eventType)}`}>
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1">
+                                                    {getEventIcon(event.eventType)}
                                                 </div>
-                                            )}
-                                            <div className="text-sm text-muted-foreground font-mono">
-                                                By: {event.updatedBy}
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="font-medium text-sm">{formatEventType(event.eventType)}</h4>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {new Date(Number(event.timestamp) * 1000).toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    {event.location && (
+                                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {event.location}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-xs text-muted-foreground font-mono">
+                                                        By: {truncateAddress(event.updatedBy)}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Event Management Section (for actors) */}
-            {shipment && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Add General Event */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
-                                Add Event
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...eventForm}>
-                                <form onSubmit={eventForm.handleSubmit(onAddShipmentEvent)} className="space-y-4">
-                                    <FormField
-                                        control={eventForm.control}
-                                        name="shipmentCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Shipment Code</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="SHIP0001" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={eventForm.control}
-                                        name="location"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Location</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="Current location" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={eventForm.control}
-                                        name="eventType"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Event Type</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="Event description" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={isAddingEvent}>
-                                        {isAddingEvent ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Event"}
-                                    </Button>
-                                </form>
-                            </Form>
-                        </CardContent>
-                    </Card>
-
-                    {/* Update Location */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4" />
-                                Update Location
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...locationForm}>
-                                <form onSubmit={locationForm.handleSubmit(onUpdateLocation)} className="space-y-4">
-                                    <FormField
-                                        control={locationForm.control}
-                                        name="shipmentCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Shipment Code</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="SHIP0001" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={locationForm.control}
-                                        name="location"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>New Location</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="Updated location" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={isUpdatingLocation}>
-                                        {isUpdatingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Location"}
-                                    </Button>
-                                </form>
-                            </Form>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                    <p>No tracking events found for this shipment.</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

@@ -13,7 +13,7 @@ export default function ManagementPage() {
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-8 text-center">
                         <h1 className="text-4xl font-bold tracking-tight mb-4">
-                            Logistics Management Center
+                            ⚙️ Logistics Management Center
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                             Trung tâm quản lý toàn bộ logistics - từ workflow, actors đến events 
