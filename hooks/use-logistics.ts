@@ -3,16 +3,18 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { parseEther, parseGwei } from "viem";
+import { parseEther } from "viem";
 import {
   LOGISTICS_CONTRACT_ADDRESS,
   LOGISTICS_ABI,
   StatusEnum,
   Shipment,
   ShipmentEvent,
+  StatusChange,
+  CarrierStats,
 } from "../lib/contracts";
 
-// Hook để tạo shipment mới với escrow deposit
+// Hook để tạo shipment mới
 export function useCreateShipment() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
@@ -22,23 +24,12 @@ export function useCreateShipment() {
     origin: string,
     destination: string,
     carrier: string,
-    deadline: number, 
-    depositAmount?: string | bigint 
+    shippingFee: string
   ) => {
-    // Handle both string and BigInt deposit amounts
-    let depositWei: bigint;
-
-    if (typeof depositAmount === "string") {
-      depositWei = parseEther(depositAmount);
-    } else if (depositAmount !== undefined) {
-      // If it's already a BigInt
-      depositWei = BigInt(depositAmount);
-    } else {
-      depositWei = BigInt(0);
-    }
+    const shippingFeeWei = parseEther(shippingFee);
 
     console.log(`Creating shipment with code: ${shipmentCode}`);
-    console.log(`Deposit amount: ${depositWei.toString()}`);
+    console.log(`Shipping fee: ${shippingFeeWei.toString()}`);
 
     try {
       writeContract({
@@ -51,11 +42,10 @@ export function useCreateShipment() {
           origin,
           destination,
           carrier as `0x${string}`,
-          BigInt(deadline),
-          depositWei,
+          shippingFeeWei,
         ],
-        value: depositWei,
-        gas: BigInt(500000), // Increased gas limit further
+        value: shippingFeeWei, // Send the shipping fee as payment
+        gas: BigInt(500000),
       });
     } catch (error) {
       console.error("Error in createShipment:", error);
@@ -78,6 +68,7 @@ export function useCreateShipment() {
   };
 }
 
+// Hook để lấy thông tin shipment
 export function useGetShipment(shipmentCode: string) {
   const { data, isError, isLoading, refetch } = useReadContract({
     address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
@@ -117,29 +108,27 @@ export function useGetShipmentEvents(shipmentCode: string) {
   };
 }
 
-// Hook để thêm event vào shipment
-export function useAddShipmentEvent() {
+// Hook để cập nhật shipment với location và status mới
+export function useUpdateShipment() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const addEvent = (
+  const updateShipment = (
     shipmentCode: string,
     location: string,
-    eventType: string
+    newStatus: StatusEnum
   ) => {
-    console.log(`Adding event: ${shipmentCode}, ${location}, ${eventType}`);
-    console.log(`Using contract address: ${LOGISTICS_CONTRACT_ADDRESS}`);
+    console.log(`Updating shipment ${shipmentCode} to status ${newStatus} at ${location}`);
 
     try {
       writeContract({
         address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
         abi: LOGISTICS_ABI,
-        functionName: "addShipmentEvent",
-        args: [shipmentCode, location, eventType],
-        // Cấu hình gas đúng cách cho Kairos testnet
-        gas: BigInt(300000), // Tăng gas limit
+        functionName: "updateShipment",
+        args: [shipmentCode, location, newStatus],
+        gas: BigInt(300000),
       });
     } catch (error) {
-      console.error("Error in addShipmentEvent:", error);
+      console.error("Error in updateShipment:", error);
       throw error;
     }
   };
@@ -150,7 +139,7 @@ export function useAddShipmentEvent() {
     });
 
   return {
-    addEvent,
+    updateShipment,
     hash,
     isPending,
     isConfirming,
@@ -159,33 +148,24 @@ export function useAddShipmentEvent() {
   };
 }
 
-// Hook để cập nhật status của shipment
-export function useUpdateShipmentStatus() {
+// Hook để start transit
+export function useStartTransit() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const updateStatus = async (
-    shipmentCode: string,
-    newStatus: StatusEnum,
-    note?: string
-  ) => {
-    try {
-      // Kiểm tra xem shipment có tồn tại không trước khi cập nhật
-      console.log(
-        `Đang cập nhật shipment ${shipmentCode} sang trạng thái ${newStatus} với ghi chú: ${
-          note || ""
-        }`
-      );
+  const startTransit = (shipmentCode: string) => {
+    console.log(`Starting transit for shipment: ${shipmentCode}`);
 
-      await writeContract({
+    try {
+      writeContract({
         address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
         abi: LOGISTICS_ABI,
-        functionName: "updateShipmentStatus",
-        args: [shipmentCode, newStatus, note || ""],
-        // Cấu hình gas đúng cách cho Kairos testnet
+        functionName: "startTransit",
+        args: [shipmentCode],
+        gas: BigInt(200000),
       });
-    } catch (err) {
-      console.error("Lỗi khi cập nhật trạng thái:", err);
-      throw err; // Re-throw để component có thể xử lý
+    } catch (error) {
+      console.error("Error in startTransit:", error);
+      throw error;
     }
   };
 
@@ -195,7 +175,7 @@ export function useUpdateShipmentStatus() {
     });
 
   return {
-    updateStatus,
+    startTransit,
     hash,
     isPending,
     isConfirming,
@@ -204,21 +184,25 @@ export function useUpdateShipmentStatus() {
   };
 }
 
-// Hook để đánh giá carrier
-export function useRateCarrier() {
+// Hook để confirm (warehouse hoặc inspector)
+export function useConfirm() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const rateCarrier = (
-    shipmentCode: string,
-    rating: number,
-    feedback: string
-  ) => {
-    writeContract({
-      address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: LOGISTICS_ABI,
-      functionName: "rateCarrier",
-      args: [shipmentCode, rating, feedback],
-    });
+  const confirm = (shipmentCode: string, isWarehouse: boolean) => {
+    console.log(`Confirming shipment ${shipmentCode}, isWarehouse: ${isWarehouse}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "confirm",
+        args: [shipmentCode, isWarehouse],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in confirm:", error);
+      throw error;
+    }
   };
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -227,7 +211,160 @@ export function useRateCarrier() {
     });
 
   return {
-    rateCarrier,
+    confirm,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để confirm delivery
+export function useConfirmDelivery() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const confirmDelivery = (shipmentCode: string) => {
+    console.log(`Confirming delivery for shipment: ${shipmentCode}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "confirmDelivery",
+        args: [shipmentCode],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in confirmDelivery:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    confirmDelivery,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để rate hoặc dispute
+export function useRateOrDispute() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const rateOrDispute = (
+    shipmentCode: string,
+    rating: number,
+    feedback: string,
+    isDispute: boolean
+  ) => {
+    console.log(`Rating/Disputing shipment ${shipmentCode}, rating: ${rating}, isDispute: ${isDispute}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "rateOrDispute",
+        args: [shipmentCode, rating, feedback, isDispute],
+        gas: BigInt(300000),
+      });
+    } catch (error) {
+      console.error("Error in rateOrDispute:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    rateOrDispute,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để set actors (warehouse manager và quality inspector)
+export function useSetActors() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const setActors = (
+    shipmentCode: string,
+    manager: string,
+    inspector: string
+  ) => {
+    console.log(`Setting actors for shipment ${shipmentCode}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "setActors",
+        args: [shipmentCode, manager as `0x${string}`, inspector as `0x${string}`],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in setActors:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    setActors,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để resolve dispute (admin only)
+export function useResolveDispute() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const resolveDispute = (shipmentCode: string, favorCreator: boolean) => {
+    console.log(`Resolving dispute for shipment ${shipmentCode}, favor creator: ${favorCreator}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "resolveDispute",
+        args: [shipmentCode, favorCreator],
+        gas: BigInt(300000),
+      });
+    } catch (error) {
+      console.error("Error in resolveDispute:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    resolveDispute,
     hash,
     isPending,
     isConfirming,
@@ -275,23 +412,57 @@ export function useGetStatusHistory(shipmentCode?: string) {
   });
 }
 
-// Hook để kiểm tra xem escrow đã được release chưa
-export function useIsEscrowReleased(shipmentCode?: string) {
-  const { data: shipment } = useReadContract({
+// Hook để kiểm tra admin
+export function useGetAdmin() {
+  return useReadContract({
     address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOGISTICS_ABI,
-    functionName: "getShipment",
-    args: shipmentCode ? [shipmentCode] : undefined,
+    functionName: "admin",
+  });
+}
+
+// Hook để kiểm tra authorized inspectors
+export function useIsAuthorizedInspector(address?: string) {
+  return useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "authorizedInspectors",
+    args: address ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: !!shipmentCode,
+      enabled: !!address,
     },
   });
+}
 
-  const shipmentData = shipment as Shipment | undefined;
+// Hook để kiểm tra authorized warehouse managers
+export function useIsAuthorizedWarehouseManager(address?: string) {
+  return useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "authorizedWarehouseManagers",
+    args: address ? [address as `0x${string}`] : undefined,
+    query: {
+      enabled: !!address,
+    },
+  });
+}
+
+// Hook để kiểm tra trạng thái escrow
+export function useIsEscrowReleased(shipmentCode: string) {
+  const { shipment } = useGetShipment(shipmentCode);
+
+  const isReleased = shipment ? 
+    shipment.currentStatus === StatusEnum.Completed ||
+    shipment.currentStatus === StatusEnum.Delivered : false;
+
+  const isRefunded = shipment ? 
+    shipment.currentStatus === StatusEnum.Canceled : false;
+
+  const depositAmount = shipment?.depositAmount || BigInt(0);
 
   return {
-    isReleased: shipmentData?.escrowState === 1, // EscrowState.Released
-    isRefunded: shipmentData?.escrowState === 2, // EscrowState.Refunded
-    depositAmount: shipmentData?.depositAmount || BigInt(0),
+    isReleased,
+    isRefunded,
+    depositAmount,
   };
 }
