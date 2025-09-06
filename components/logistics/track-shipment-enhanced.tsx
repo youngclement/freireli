@@ -11,9 +11,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import {
-    useGetShipment,
-    useGetShipmentEvents,
+import { 
+    useGetShipment, 
+    useGetShipmentEvents, 
     useGetFullTrackingInfo,
     useAddShipmentEvent,
     useAddTransitEvent,
@@ -23,17 +23,17 @@ import {
 } from "@/hooks/use-logistics";
 import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import {
-    Search,
-    MapPin,
-    Calendar,
-    Clock,
-    Package,
-    Truck,
-    Building2,
-    ShieldCheck,
-    CheckCircle,
-    XCircle,
+import { 
+    Search, 
+    MapPin, 
+    Calendar, 
+    Clock, 
+    Package, 
+    Truck, 
+    Building2, 
+    ShieldCheck, 
+    CheckCircle, 
+    XCircle, 
     AlertCircle,
     Activity,
     Plus,
@@ -310,9 +310,9 @@ export function TrackShipmentAnimated() {
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
                                         <FormControl>
-                                            <Input
-                                                placeholder="Enter shipment code (e.g. SHIP0001)"
-                                                {...field}
+                                            <Input 
+                                                placeholder="Enter shipment code (e.g. SHIP0001)" 
+                                                {...field} 
                                                 className="text-lg"
                                             />
                                         </FormControl>
@@ -357,8 +357,8 @@ export function TrackShipmentAnimated() {
                                     <span>Progress</span>
                                     <span>{getProgressValue(shipment.currentStatus)}%</span>
                                 </div>
-                                <Progress
-                                    value={getProgressValue(shipment.currentStatus)}
+                                <Progress 
+                                    value={getProgressValue(shipment.currentStatus)} 
                                     className="h-2"
                                 />
                             </div>
@@ -401,29 +401,29 @@ export function TrackShipmentAnimated() {
                             </div>
 
                             {/* Actors Info */}
-                            {(shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" ||
-                                shipment.qualityInspector !== "0x0000000000000000000000000000000000000000") && (
-                                    <div className="border rounded-lg p-4 bg-muted/50">
-                                        <h4 className="font-medium mb-3 flex items-center gap-2">
-                                            <Building2 className="w-4 h-4" />
-                                            Assigned Actors
-                                        </h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                            {shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" && (
-                                                <div>
-                                                    <span className="font-medium">Warehouse Manager:</span>
-                                                    <div className="font-mono text-xs break-all">{shipment.warehouseManager}</div>
-                                                </div>
-                                            )}
-                                            {shipment.qualityInspector !== "0x0000000000000000000000000000000000000000" && (
-                                                <div>
-                                                    <span className="font-medium">Quality Inspector:</span>
-                                                    <div className="font-mono text-xs break-all">{shipment.qualityInspector}</div>
-                                                </div>
-                                            )}
-                                        </div>
+                            {(shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" || 
+                              shipment.qualityInspector !== "0x0000000000000000000000000000000000000000") && (
+                                <div className="border rounded-lg p-4 bg-muted/50">
+                                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                                        <Building2 className="w-4 h-4" />
+                                        Assigned Actors
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                        {shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" && (
+                                            <div>
+                                                <span className="font-medium">Warehouse Manager:</span>
+                                                <div className="font-mono text-xs break-all">{shipment.warehouseManager}</div>
+                                            </div>
+                                        )}
+                                        {shipment.qualityInspector !== "0x0000000000000000000000000000000000000000" && (
+                                            <div>
+                                                <span className="font-medium">Quality Inspector:</span>
+                                                <div className="font-mono text-xs break-all">{shipment.qualityInspector}</div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

@@ -1,0 +1,91 @@
+tôi vừa cập nhật contract 1 lần nữa hãy sửa dự án dựa vào abi giúp tôi 
+ÁC CHỨC NĂNG CHÍNH
+1. Quản lý Shipment
+createShipment() - Tạo shipment mới với thông tin sản phẩm, điểm đi/đến, carrier
+cancelShipment() - Admin hủy shipment (chỉ admin)
+setActors() - Gán warehouse manager và quality inspector
+setWarehouseManager() - Gán riêng warehouse manager
+setQualityInspector() - Gán riêng quality inspector
+2. Quy trình Xác nhận
+warehouseConfirm() - Warehouse manager xác nhận
+qualityApprove() - Quality inspector phê duyệt chất lượng
+startTransit() - Carrier bắt đầu vận chuyển
+confirmDelivery() - Người nhận xác nhận đã nhận hàng
+3. Tracking & Events
+addShipmentEvent() - Thêm event chung (warehouse manager/quality inspector)
+addTransitEvent() - Carrier thêm event trong quá trình vận chuyển
+addWarehouseEvent() - Event từ warehouse
+addQualityEvent() - Event từ quality control
+updateLocation() - Cập nhật vị trí (tất cả actors)
+4. Đánh giá & Khiếu nại
+rateOrDispute() - Đánh giá carrier hoặc tạo khiếu nại
+resolveDispute() - Admin giải quyết khiếu nại
+5. Truy vấn
+getFullTrackingInfo() - Lấy thông tin tracking đầy đủ
+🎯 CÁC STATUS CỦA SHIPMENT
+📢 CÁC EVENTS
+Từ LogisticsBase:
+ShipmentCreated(code, depositAmount)
+ShipmentEventAdded(code, eventType)
+ShipmentStatusUpdated(code, oldStatus, newStatus, note)
+EscrowReleased(code, carrier, amount)
+EscrowRefunded(code, creator, amount)
+CarrierRated(code, carrier, rating, feedback)
+ConfirmationUpdated(code, actor, confirmationType)
+DisputeRaised(code, reason, raisedBy)
+🔄 FLOW HOÀN CHỈNH CỦA SHIPMENT
+Phase 1: Khởi tạo
+1. Creator tạo shipment → createShipment()
+   - Status: Pending
+   - Deposit ETH vào escrow
+   - Event: ShipmentCreated
+
+2. Creator/Admin gán actors → setActors()
+   - Gán warehouse manager
+   - Gán quality inspector
+Phase 2: Xác nhận
+3. Warehouse Manager xác nhận → warehouseConfirm()
+   - Status: Pending → WarehouseConfirmed
+   - Flag warehouse_confirmed = true
+   - Event: ConfirmationUpdated + ShipmentEventAdded
+
+4. Quality Inspector phê duyệt → qualityApprove()
+   - Status: WarehouseConfirmed → QualityApproved
+   - Flag quality_approved = true
+   - Event: ConfirmationUpdated + ShipmentEventAdded
+Phase 3: Vận chuyển
+5. Carrier bắt đầu vận chuyển → startTransit()
+   - Kiểm tra: warehouse_confirmed && quality_approved
+   - Status: QualityApproved → InTransit
+   - Event: ShipmentEventAdded("transit_started")
+
+6. Trong quá trình vận chuyển:
+   - Carrier có thể addTransitEvent() để cập nhật vị trí
+   - Các actors khác có thể updateLocation()
+Phase 4: Hoàn thành
+7. Người nhận xác nhận → confirmDelivery()
+   - Status: InTransit → Delivered
+   - Flag delivered = true
+   - Release escrow cho carrier
+   - Event: ConfirmationUpdated + ShipmentEventAdded
+
+8. Creator có thể đánh giá → rateOrDispute(isDispute=false)
+   - Chỉ khi status = Delivered
+   - Rating 1-5 stars
+   - Cập nhật carrier stats
+Phase 5: Xử lý ngoại lệ
+Hủy shipment (bất kỳ lúc nào trừ Delivered):
+- Admin → cancelShipment()
+- Status → Canceled
+- Refund escrow cho creator
+
+Khiếu nại (trước khi Delivered):
+- Creator/Carrier → rateOrDispute(isDispute=true)
+- Flag disputed = true
+- Admin → resolveDispute()
+  - Nếu favor creator: Cancel + Refund
+  - Nếu favor carrier: Delivered + Release escrow
+
+
+  
+

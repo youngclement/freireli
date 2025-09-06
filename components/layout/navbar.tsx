@@ -10,7 +10,7 @@ import { ModeToggleSimple } from "@/components/theme/mode-toggle-simple";
 const navigation = [
     { name: "Create", href: "/create" },
     { name: "Track", href: "/track" },
-    { name: "Manage", href: "/manage" },
+    { name: "Management", href: "/management" },
     { name: "Rate", href: "/rate" },
     { name: "Profiles", href: "/profile" },
 ];

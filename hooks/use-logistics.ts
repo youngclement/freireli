@@ -184,23 +184,23 @@ export function useStartTransit() {
   };
 }
 
-// Hook để confirm (warehouse hoặc inspector)
-export function useConfirm() {
+// Hook để warehouse confirm
+export function useWarehouseConfirm() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
 
-  const confirm = (shipmentCode: string, isWarehouse: boolean) => {
-    console.log(`Confirming shipment ${shipmentCode}, isWarehouse: ${isWarehouse}`);
+  const warehouseConfirm = (shipmentCode: string) => {
+    console.log(`Warehouse confirming shipment: ${shipmentCode}`);
 
     try {
       writeContract({
         address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
         abi: LOGISTICS_ABI,
-        functionName: "confirm",
-        args: [shipmentCode, isWarehouse],
+        functionName: "warehouseConfirm",
+        args: [shipmentCode],
         gas: BigInt(200000),
       });
     } catch (error) {
-      console.error("Error in confirm:", error);
+      console.error("Error in warehouseConfirm:", error);
       throw error;
     }
   };
@@ -211,12 +211,356 @@ export function useConfirm() {
     });
 
   return {
-    confirm,
+    warehouseConfirm,
     hash,
     isPending,
     isConfirming,
     isConfirmed,
     error,
+  };
+}
+
+// Hook để quality approve
+export function useQualityApprove() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const qualityApprove = (shipmentCode: string) => {
+    console.log(`Quality approving shipment: ${shipmentCode}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "qualityApprove",
+        args: [shipmentCode],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in qualityApprove:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    qualityApprove,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để set warehouse manager riêng
+export function useSetWarehouseManager() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const setWarehouseManager = (shipmentCode: string, manager: string) => {
+    console.log(`Setting warehouse manager for shipment ${shipmentCode}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "setWarehouseManager",
+        args: [shipmentCode, manager as `0x${string}`],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in setWarehouseManager:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    setWarehouseManager,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để set quality inspector riêng
+export function useSetQualityInspector() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const setQualityInspector = (shipmentCode: string, inspector: string) => {
+    console.log(`Setting quality inspector for shipment ${shipmentCode}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "setQualityInspector",
+        args: [shipmentCode, inspector as `0x${string}`],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in setQualityInspector:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    setQualityInspector,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để cancel shipment (admin only)
+export function useCancelShipment() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const cancelShipment = (shipmentCode: string, reason: string) => {
+    console.log(`Canceling shipment ${shipmentCode} with reason: ${reason}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "cancelShipment",
+        args: [shipmentCode, reason],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in cancelShipment:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    cancelShipment,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để add shipment event chung
+export function useAddShipmentEvent() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const addShipmentEvent = (shipmentCode: string, location: string, eventType: string) => {
+    console.log(`Adding event for shipment ${shipmentCode}: ${eventType} at ${location}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "addShipmentEvent",
+        args: [shipmentCode, location, eventType],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in addShipmentEvent:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    addShipmentEvent,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để add transit event (carrier only)
+export function useAddTransitEvent() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const addTransitEvent = (shipmentCode: string, location: string, note: string) => {
+    console.log(`Adding transit event for shipment ${shipmentCode} at ${location}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "addTransitEvent",
+        args: [shipmentCode, location, note],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in addTransitEvent:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    addTransitEvent,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để add warehouse event
+export function useAddWarehouseEvent() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const addWarehouseEvent = (shipmentCode: string, eventType: string) => {
+    console.log(`Adding warehouse event for shipment ${shipmentCode}: ${eventType}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "addWarehouseEvent",
+        args: [shipmentCode, eventType],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in addWarehouseEvent:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    addWarehouseEvent,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để add quality event
+export function useAddQualityEvent() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const addQualityEvent = (shipmentCode: string, eventType: string) => {
+    console.log(`Adding quality event for shipment ${shipmentCode}: ${eventType}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "addQualityEvent",
+        args: [shipmentCode, eventType],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in addQualityEvent:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    addQualityEvent,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để update location (tất cả actors)
+export function useUpdateLocation() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+
+  const updateLocation = (shipmentCode: string, location: string) => {
+    console.log(`Updating location for shipment ${shipmentCode} to ${location}`);
+
+    try {
+      writeContract({
+        address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOGISTICS_ABI,
+        functionName: "updateLocation",
+        args: [shipmentCode, location],
+        gas: BigInt(200000),
+      });
+    } catch (error) {
+      console.error("Error in updateLocation:", error);
+      throw error;
+    }
+  };
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
+  return {
+    updateLocation,
+    hash,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    error,
+  };
+}
+
+// Hook để lấy full tracking info
+export function useGetFullTrackingInfo(shipmentCode: string) {
+  const { data, isError, isLoading, refetch } = useReadContract({
+    address: LOGISTICS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOGISTICS_ABI,
+    functionName: "getFullTrackingInfo",
+    args: [shipmentCode],
+    query: {
+      enabled: !!shipmentCode,
+    },
+  });
+
+  return {
+    trackingInfo: data as Shipment | undefined,
+    isError,
+    isLoading,
+    refetch,
   };
 }
 

@@ -7,10 +7,10 @@ export const LOGISTICS_CONTRACT_ADDRESS = config.contract.logisticsAddress;
 export const LOGISTICS_ABI = logisticsAbi;
 
 export enum StatusEnum {
-  Created = 0,
-  InTransit = 1,
-  AtWarehouse = 2,
-  QualityChecked = 3,
+  Pending = 0,
+  WarehouseConfirmed = 1, 
+  QualityApproved = 2,
+  InTransit = 3,
   Delivered = 4,
   Completed = 5,
   Disputed = 6,

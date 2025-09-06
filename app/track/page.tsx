@@ -1,4 +1,4 @@
-import { TrackShipmentAnimated } from "@/components/logistics/track-shipment-animated";
+import { TrackShipmentAnimated } from "@/components/logistics/track-shipment-enhanced";
 import Image from "next/image";
 
 export default function TrackPage() {
