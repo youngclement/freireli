@@ -18,16 +18,9 @@ const createShipmentSchema = z.object({
     origin: z.string().min(1, "Origin is required"),
     destination: z.string().min(1, "Destination is required"),
     carrier: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address"),
-    deadline: z.string().min(1, "Deadline is required").refine(
-        (val) => {
-            const date = new Date(val);
-            return !isNaN(date.getTime()) && date > new Date();
-        },
-        "Deadline must be a valid future date"
-    ),
-    depositAmount: z.string().min(1, "Deposit amount is required").refine(
+    shippingFee: z.string().min(1, "Shipping fee is required").refine(
         (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
-        "Invalid deposit amount"
+        "Invalid shipping fee amount"
     ),
 });
 
@@ -44,16 +37,12 @@ export function CreateShipment() {
             origin: "",
             destination: "",
             carrier: "",
-            deadline: "",
-            depositAmount: "",
+            shippingFee: "",
         },
     });
 
     // Quick fill examples
     const quickFillExample = () => {
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 7);
-
         // Generate a random shipment code to avoid conflicts
         const randomCode = "SHIP" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
@@ -62,27 +51,20 @@ export function CreateShipment() {
         form.setValue("origin", "Ho Chi Minh City");
         form.setValue("destination", "Tokyo");
         form.setValue("carrier", "0x2a2cB2F081b651D05B8302f599B102710E8355F5"); 
-        form.setValue("deadline", futureDate.toISOString().split('T')[0]);
-        form.setValue("depositAmount", "0.2");
+        form.setValue("shippingFee", "0.2");
         toast.success("Example data filled in with unique code: " + randomCode);
     };
 
     const onSubmit = async (data: CreateShipmentFormData) => {
         try {
-            // Convert deadline string to timestamp (seconds)
-            const deadlineDate = new Date(data.deadline);
-            const deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000);
-
-            // // Log the data being sent
-            // console.log("Submitting shipment with data:", {
-            //     code: data.shipmentCode,
-            //     product: data.productName,
-            //     origin: data.origin,
-            //     destination: data.destination,
-            //     carrier: data.carrier,
-            //     deadline: deadlineTimestamp,
-            //     deposit: data.depositAmount
-            // });
+            console.log("Submitting shipment with data:", {
+                code: data.shipmentCode,
+                product: data.productName,
+                origin: data.origin,
+                destination: data.destination,
+                carrier: data.carrier,
+                shippingFee: data.shippingFee
+            });
 
             createShipment(
                 data.shipmentCode,
@@ -90,10 +72,9 @@ export function CreateShipment() {
                 data.origin,
                 data.destination,
                 data.carrier,
-                deadlineTimestamp,
-                data.depositAmount
+                data.shippingFee
             );
-            toast.success(`Creating shipment ${data.shipmentCode} with escrow deposit...`);
+            toast.success(`Creating shipment ${data.shipmentCode}...`);
         } catch (err) {
             console.error("Error in onSubmit:", err);
             toast.error(`Error occurred: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -269,41 +250,15 @@ export function CreateShipment() {
                                 )}
                             />
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name="deadline"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4" />
-                                                Delivery Deadline
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="date"
-                                                    placeholder="Select a deadline"
-                                                    {...field}
-                                                    className="h-12"
-                                                    min={new Date().toISOString().split('T')[0]}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            <p className="text-xs text-muted-foreground">
-                                                Expected delivery date. Escrow can be disputed after this date.
-                                            </p>
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="depositAmount"
+                                    name="shippingFee"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel className="flex items-center gap-2">
                                                 <Wallet className="w-4 h-4" />
-                                                Escrow Deposit (KAIA)
+                                                Shipping Fee (KAIA)
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
@@ -316,7 +271,7 @@ export function CreateShipment() {
                                             </FormControl>
                                             <FormMessage />
                                             <p className="text-xs text-muted-foreground">
-                                                Amount in KAIA to hold in escrow. Released to carrier on delivery, refunded on cancellation.
+                                                Amount in KAIA to pay the carrier for shipping. This will be held in escrow until delivery.
                                             </p>
                                         </FormItem>
                                     )}
@@ -327,23 +282,26 @@ export function CreateShipment() {
                             <div className="bg-muted/50 rounded-lg p-4 border">
                                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                                     <Truck className="w-4 h-4" />
-                                    Escrow System Information
+                                    New Logistics System Information
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
                                     <div>
-                                        <strong>• Escrow Protection:</strong> Funds held safely until delivery
+                                        <strong>• Escrow Protection:</strong> Shipping fee held safely until delivery
                                     </div>
                                     <div>
-                                        <strong>• Auto Release:</strong> Released to carrier on &ldquo;Delivered&rdquo; status
+                                        <strong>• Multi-Role System:</strong> Warehouse managers and quality inspectors
                                     </div>
                                     <div>
-                                        <strong>• Auto Refund:</strong> Refunded to you on &ldquo;Canceled&rdquo; status
+                                        <strong>• Status Tracking:</strong> Real-time shipment status updates
+                                    </div>
+                                    <div>
+                                        <strong>• Rating System:</strong> Rate carriers after delivery
+                                    </div>
+                                    <div>
+                                        <strong>• Dispute Resolution:</strong> Built-in dispute handling mechanism
                                     </div>
                                     <div>
                                         <strong>• Transaction Fee:</strong> About 0.001 - 0.005 KAIA
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <strong>• Security:</strong> Smart contract ensures transparent and secure transactions
                                     </div>
                                 </div>
                             </div>
