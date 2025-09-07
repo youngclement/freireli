@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import {
     useUpdateShipment,
     useGetShipment,
@@ -20,9 +19,8 @@ import {
     useConfirmDelivery,
     useSetActors
 } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import { Plus, Edit, Settings, CheckCircle2, MapPin, Loader2, MessageSquare, Activity, Users, Truck } from "lucide-react";
+import { Edit, Settings, CheckCircle2, MapPin, Loader2, Users, Truck } from "lucide-react";
 
 const updateShipmentSchema = z.object({
     shipmentCode: z.string().min(1, "Shipment code is required"),
@@ -56,11 +54,6 @@ export function ManageShipment() {
     const { qualityApprove, isPending: isQualityApproving, isConfirming: isConfirmingQuality, isConfirmed: isQualityApproved, error: qualityError } = useQualityApprove();
     const { confirmDelivery, isPending: isConfirmingDelivery, isConfirming: isConfirmingDeliveryTx, isConfirmed: isDeliveryConfirmed, error: deliveryError } = useConfirmDelivery();
     const { setActors, isPending: isSettingActors, isConfirming: isConfirmingActors, isConfirmed: isActorsConfirmed, error: actorsError } = useSetActors();
-
-    // State để lưu shipment code hiện tại
-    const [currentShipmentCode, setCurrentShipmentCode] = useState("");
-    // Lấy thông tin shipment
-    const { shipment, isError: shipmentError, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(currentShipmentCode);
 
     const updateForm = useForm<UpdateShipmentFormData>({
         resolver: zodResolver(updateShipmentSchema),

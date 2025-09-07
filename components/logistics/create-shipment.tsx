@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useCreateShipment } from "@/hooks/use-logistics";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, Clock, Hash, Loader2, MapPin, Package, Truck, Wallet, Zap } from "lucide-react";
+import { Hash, Loader2, MapPin, Package, Truck, Wallet, Zap } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

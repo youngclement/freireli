@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import {
     useGetShipment,
@@ -186,14 +185,13 @@ const getEventColor = (eventType: string) => {
 export function TrackShipmentAnimated() {
     const [shipmentCode, setShipmentCode] = useState("");
     const { shipment, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(shipmentCode);
-    const { events, isLoading: eventsLoading, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
-    const { trackingInfo, isLoading: trackingLoading, refetch: refetchTracking } = useGetFullTrackingInfo(shipmentCode);
+    const { events, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
 
     // Event hooks
     const { addShipmentEvent, isPending: isAddingEvent } = useAddShipmentEvent();
-    const { addTransitEvent, isPending: isAddingTransitEvent } = useAddTransitEvent();
-    const { addWarehouseEvent, isPending: isAddingWarehouseEvent } = useAddWarehouseEvent();
-    const { addQualityEvent, isPending: isAddingQualityEvent } = useAddQualityEvent();
+    const { addTransitEvent } = useAddTransitEvent();
+    const { addWarehouseEvent } = useAddWarehouseEvent();
+    const { addQualityEvent } = useAddQualityEvent();
     const { updateLocation, isPending: isUpdatingLocation } = useUpdateLocation();
 
     const trackingForm = useForm<TrackingFormData>({
@@ -230,7 +228,6 @@ export function TrackShipmentAnimated() {
         setShipmentCode(data.shipmentCode);
         refetchShipment();
         refetchEvents();
-        refetchTracking();
     };
 
     const onAddShipmentEvent = async (data: EventFormData) => {
@@ -239,7 +236,7 @@ export function TrackShipmentAnimated() {
             toast.success("Event added successfully!");
             eventForm.reset();
             refetchEvents();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add event");
         }
     };
@@ -250,7 +247,7 @@ export function TrackShipmentAnimated() {
             toast.success("Transit event added successfully!");
             transitEventForm.reset();
             refetchEvents();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add transit event");
         }
     };
@@ -261,7 +258,7 @@ export function TrackShipmentAnimated() {
             toast.success("Warehouse event added successfully!");
             warehouseEventForm.reset();
             refetchEvents();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add warehouse event");
         }
     };
@@ -272,7 +269,7 @@ export function TrackShipmentAnimated() {
             toast.success("Quality event added successfully!");
             qualityEventForm.reset();
             refetchEvents();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add quality event");
         }
     };
@@ -283,7 +280,7 @@ export function TrackShipmentAnimated() {
             toast.success("Location updated successfully!");
             locationForm.reset();
             refetchShipment();
-        } catch (error) {
+        } catch {
             toast.error("Failed to update location");
         }
     };

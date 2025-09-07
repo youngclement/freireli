@@ -31,22 +31,14 @@ import {
     useRateOrDispute,
     useResolveDispute
 } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
 import { 
-    Settings, 
-    Edit, 
-    CheckCircle2, 
     MapPin, 
     Loader2, 
-    Users, 
     Truck, 
     Building2, 
     ShieldCheck, 
-    Plus,
-    Activity,
     AlertTriangle,
-    Star,
     Gavel
 } from "lucide-react";
 
@@ -142,10 +134,6 @@ export function LogisticsManagement() {
     const { updateLocation, isPending: isUpdatingLocation } = useUpdateLocation();
     const { rateOrDispute, isPending: isRatingOrDisputing } = useRateOrDispute();
     const { resolveDispute, isPending: isResolvingDispute } = useResolveDispute();
-
-    // State
-    const [currentShipmentCode, setCurrentShipmentCode] = useState("");
-    const { shipment, isError: shipmentError, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(currentShipmentCode);
 
     // All forms
     const updateForm = useForm<UpdateShipmentFormData>({
@@ -288,7 +276,7 @@ export function LogisticsManagement() {
             await addShipmentEvent(data.shipmentCode, data.location, data.eventType);
             toast.success("Event added successfully!");
             eventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add event");
         }
     };
@@ -298,7 +286,7 @@ export function LogisticsManagement() {
             await addTransitEvent(data.shipmentCode, data.location, data.note);
             toast.success("Transit event added successfully!");
             transitEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add transit event");
         }
     };
@@ -308,7 +296,7 @@ export function LogisticsManagement() {
             await addWarehouseEvent(data.shipmentCode, data.eventType);
             toast.success("Warehouse event added successfully!");
             warehouseEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add warehouse event");
         }
     };
@@ -318,7 +306,7 @@ export function LogisticsManagement() {
             await addQualityEvent(data.shipmentCode, data.eventType);
             toast.success("Quality event added successfully!");
             qualityEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add quality event");
         }
     };
@@ -328,7 +316,7 @@ export function LogisticsManagement() {
             await updateLocation(data.shipmentCode, data.location);
             toast.success("Location updated successfully!");
             locationForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to update location");
         }
     };
@@ -338,7 +326,7 @@ export function LogisticsManagement() {
             await cancelShipment(data.shipmentCode, data.reason);
             toast.success("Shipment canceled successfully!");
             cancelForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to cancel shipment");
         }
     };
@@ -348,7 +336,7 @@ export function LogisticsManagement() {
             await rateOrDispute(data.shipmentCode, data.rating, data.feedback, data.isDispute);
             toast.success(data.isDispute ? "Dispute raised successfully!" : "Rating submitted successfully!");
             rateForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to submit rating/dispute");
         }
     };
@@ -358,7 +346,7 @@ export function LogisticsManagement() {
             await resolveDispute(data.shipmentCode, data.favorCreator);
             toast.success("Dispute resolved successfully!");
             resolveForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to resolve dispute");
         }
     };
@@ -368,7 +356,7 @@ export function LogisticsManagement() {
             await setWarehouseManager(data.shipmentCode, data.address);
             toast.success("Warehouse manager set successfully!");
             warehouseManagerForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to set warehouse manager");
         }
     };
@@ -378,7 +366,7 @@ export function LogisticsManagement() {
             await setQualityInspector(data.shipmentCode, data.address);
             toast.success("Quality inspector set successfully!");
             qualityInspectorForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to set quality inspector");
         }
     };

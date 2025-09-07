@@ -9,16 +9,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import { 
     useGetShipment, 
     useGetShipmentEvents, 
     useGetFullTrackingInfo
 } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
+import { StatusEnum, ShipmentEvent } from "@/lib/contracts";
 import { 
     Search, 
     MapPin, 
@@ -32,7 +31,6 @@ import {
     XCircle, 
     AlertCircle,
     Activity,
-    ArrowRight,
     Globe,
     Navigation
 } from "lucide-react";
@@ -160,7 +158,6 @@ export function TrackShipmentTwoColumn() {
 
     const { shipment, isLoading: isLoadingShipment, refetch: refetchShipment } = useGetShipment(shipmentCode);
     const { events = [], isLoading: isLoadingEvents, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
-    const { trackingInfo, isLoading: isLoadingTracking, refetch: refetchTracking } = useGetFullTrackingInfo(shipmentCode);
 
     const form = useForm<TrackingFormData>({
         resolver: zodResolver(trackingSchema),
@@ -250,7 +247,6 @@ export function TrackShipmentTwoColumn() {
         setShipmentCode(data.shipmentCode);
         refetchShipment();
         refetchEvents();
-        refetchTracking();
     };
 
     return (
@@ -465,7 +461,7 @@ export function TrackShipmentTwoColumn() {
                                 <CardContent>
                                     <div ref={timelineRef} className="space-y-4 max-h-[600px] overflow-y-auto">
                                         {events.length > 0 ? (
-                                            events.map((event: any, index: number) => (
+                                            events.map((event: ShipmentEvent, index: number) => (
                                                 <div
                                                     key={index}
                                                     className="event-item relative flex gap-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300"
@@ -546,7 +542,7 @@ export function TrackShipmentTwoColumn() {
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">Shipment Not Found</h3>
                         <p className="text-gray-600 mb-6">
-                            We couldn't find a shipment with code "{shipmentCode}". 
+                            We couldn&apos;t find a shipment with code &quot;{shipmentCode}&quot;. 
                             Please check the code and try again.
                         </p>
                         <Button onClick={() => {

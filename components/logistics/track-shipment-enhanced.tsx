@@ -7,7 +7,7 @@ import * as z from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -17,11 +17,10 @@ import {
     useGetFullTrackingInfo,
     useGetCarrierStats
 } from "@/hooks/use-logistics";
-import { StatusEnum, CarrierStats } from "@/lib/contracts";
+import { StatusEnum, CarrierStats, ShipmentEvent } from "@/lib/contracts";
 import { 
     Search, 
     MapPin, 
-    Calendar, 
     Clock, 
     Package, 
     Truck, 
@@ -31,12 +30,7 @@ import {
     XCircle, 
     AlertCircle,
     Activity,
-    Loader2,
-    Star,
-    Home,
-    Warehouse,
-    Shield,
-    Navigation
+    Loader2
 } from "lucide-react";
 import { formatEther } from "viem";
 
@@ -200,7 +194,7 @@ const getRouteIcon = (type: string) => {
     }
 };
 
-const getJourneySteps = (events: any[], origin: string, destination: string) => {
+const getJourneySteps = (events: ShipmentEvent[], origin: string, destination: string) => {
     const steps: Array<{location: string, type: string, completed: boolean, additionalEvents: string[], address?: string}> = [
         { location: origin, type: 'origin', completed: true, additionalEvents: [] }
     ];
@@ -280,8 +274,7 @@ const getJourneySteps = (events: any[], origin: string, destination: string) => 
 export function TrackShipmentAnimated() {
     const [shipmentCode, setShipmentCode] = useState("");
     const { shipment, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(shipmentCode);
-    const { events, isLoading: eventsLoading, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
-    const { trackingInfo, isLoading: trackingLoading, refetch: refetchTracking } = useGetFullTrackingInfo(shipmentCode);
+    const { events, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
     
     // Get carrier stats
     const { data: carrierStats } = useGetCarrierStats(shipment?.carrier);
@@ -295,7 +288,6 @@ export function TrackShipmentAnimated() {
         setShipmentCode(data.shipmentCode);
         refetchShipment();
         refetchEvents();
-        refetchTracking();
     };
 
     return (

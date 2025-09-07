@@ -19,7 +19,6 @@ import {
     useConfirmDelivery, 
     useSetActors 
 } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
 import { Edit, Settings, CheckCircle2, MapPin, Loader2, Users, Truck } from "lucide-react";
 
@@ -55,11 +54,6 @@ export function ManageShipment() {
     const { qualityApprove, isPending: isQualityApproving, isConfirming: isConfirmingQuality, isConfirmed: isQualityApproved, error: qualityError } = useQualityApprove();
     const { confirmDelivery, isPending: isConfirmingDelivery, isConfirming: isConfirmingDeliveryTx, isConfirmed: isDeliveryConfirmed, error: deliveryError } = useConfirmDelivery();
     const { setActors, isPending: isSettingActors, isConfirming: isConfirmingActors, isConfirmed: isActorsConfirmed, error: actorsError } = useSetActors();
-
-    // State để lưu shipment code hiện tại
-    const [currentShipmentCode, setCurrentShipmentCode] = useState("");
-    // Lấy thông tin shipment
-    const { shipment, isError: shipmentError, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(currentShipmentCode);
 
     const updateForm = useForm<UpdateShipmentFormData>({
         resolver: zodResolver(updateShipmentSchema),

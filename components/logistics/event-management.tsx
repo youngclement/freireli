@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -107,7 +106,7 @@ export function EventManagement() {
             await addShipmentEvent(data.shipmentCode, data.location, data.eventType);
             toast.success("Event added successfully!");
             generalEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add event");
         }
     };
@@ -117,7 +116,7 @@ export function EventManagement() {
             await addTransitEvent(data.shipmentCode, data.location, data.note);
             toast.success("Transit event added successfully!");
             transitEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add transit event");
         }
     };
@@ -127,7 +126,7 @@ export function EventManagement() {
             await addWarehouseEvent(data.shipmentCode, data.eventType);
             toast.success("Warehouse event added successfully!");
             warehouseEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add warehouse event");
         }
     };
@@ -137,7 +136,7 @@ export function EventManagement() {
             await addQualityEvent(data.shipmentCode, data.eventType);
             toast.success("Quality event added successfully!");
             qualityEventForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to add quality event");
         }
     };
@@ -147,7 +146,7 @@ export function EventManagement() {
             await updateLocation(data.shipmentCode, data.location);
             toast.success("Location updated successfully!");
             locationForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to update location");
         }
     };
@@ -157,7 +156,7 @@ export function EventManagement() {
             await cancelShipment(data.shipmentCode, data.reason);
             toast.success("Shipment canceled successfully!");
             cancelForm.reset();
-        } catch (error) {
+        } catch {
             toast.error("Failed to cancel shipment");
         }
     };
