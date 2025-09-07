@@ -249,10 +249,10 @@ export function ManageShipment() {
     }, [deliveryError]);
 
     const statusOptions = [
-        { value: "0", label: "Pending" },
-        { value: "1", label: "Warehouse Confirmed" },
-        { value: "2", label: "Quality Approved" },
-        { value: "3", label: "In Transit" },
+        { value: "0", label: "Created" },
+        { value: "1", label: "In Transit" },
+        { value: "2", label: "At Warehouse" },
+        { value: "3", label: "Quality Checked" },
         { value: "4", label: "Delivered" },
         { value: "5", label: "Completed" },
         { value: "6", label: "Disputed" },

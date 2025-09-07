@@ -1,411 +1,582 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useGetShipment, useGetShipmentEvents } from "@/hooks/use-logistics";
-import { StatusEnum } from "@/lib/contracts";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { AlertCircle, Calendar, CheckCircle2, Clock, Copy, MapPin, Package, RefreshCw, Search, Truck, User, XCircle } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+    useGetShipment,
+    useGetShipmentEvents,
+    useGetFullTrackingInfo,
+    useAddShipmentEvent,
+    useAddTransitEvent,
+    useAddWarehouseEvent,
+    useAddQualityEvent,
+    useUpdateLocation
+} from "@/hooks/use-logistics";
+import { StatusEnum } from "@/lib/contracts";
 import { toast } from "sonner";
-import { EscrowStatus } from "./escrow-status";
+import {
+    Search,
+    MapPin,
+    Calendar,
+    Clock,
+    Package,
+    Truck,
+    Building2,
+    ShieldCheck,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    Activity,
+    Plus,
+    Loader2
+} from "lucide-react";
+import { formatEther } from "viem";
+
+const trackingSchema = z.object({
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+});
+
+const eventSchema = z.object({
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    location: z.string().min(1, "Location is required"),
+    eventType: z.string().min(1, "Event type is required"),
+});
+
+const transitEventSchema = z.object({
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    location: z.string().min(1, "Location is required"),
+    note: z.string().min(1, "Note is required"),
+});
+
+const simpleEventSchema = z.object({
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    eventType: z.string().min(1, "Event type is required"),
+});
+
+const locationUpdateSchema = z.object({
+    shipmentCode: z.string().min(1, "Shipment code is required"),
+    location: z.string().min(1, "Location is required"),
+});
+
+type TrackingFormData = z.infer<typeof trackingSchema>;
+type EventFormData = z.infer<typeof eventSchema>;
+type TransitEventFormData = z.infer<typeof transitEventSchema>;
+type SimpleEventFormData = z.infer<typeof simpleEventSchema>;
+type LocationUpdateFormData = z.infer<typeof locationUpdateSchema>;
 
 const getStatusText = (status: StatusEnum) => {
     switch (status) {
         case StatusEnum.Pending:
             return "Pending";
+        case StatusEnum.WarehouseConfirmed:
+            return "Warehouse Confirmed";
+        case StatusEnum.QualityApproved:
+            return "Quality Approved";
         case StatusEnum.InTransit:
             return "In Transit";
         case StatusEnum.Delivered:
             return "Delivered";
+        case StatusEnum.Completed:
+            return "Completed";
+        case StatusEnum.Disputed:
+            return "Disputed";
         case StatusEnum.Canceled:
             return "Canceled";
         default:
-            return "Không xác định";
-    }
-};
-
-const getStatusColor = (status: StatusEnum) => {
-    switch (status) {
-        case StatusEnum.Pending:
-            return "bg-blue-500 hover:bg-blue-600";
-        case StatusEnum.InTransit:
-            return "bg-yellow-500 hover:bg-yellow-600";
-        case StatusEnum.Delivered:
-            return "bg-green-500 hover:bg-green-600";
-        case StatusEnum.Canceled:
-            return "bg-red-500 hover:bg-red-600";
-        default:
-            return "bg-gray-500 hover:bg-gray-600";
+            return "Unknown";
     }
 };
 
 const getStatusIcon = (status: StatusEnum) => {
     switch (status) {
         case StatusEnum.Pending:
-            return <Package className="w-4 h-4" />;
+            return <Clock className="w-5 h-5" />;
+        case StatusEnum.WarehouseConfirmed:
+            return <Building2 className="w-5 h-5" />;
+        case StatusEnum.QualityApproved:
+            return <ShieldCheck className="w-5 h-5" />;
         case StatusEnum.InTransit:
-            return <Truck className="w-4 h-4" />;
+            return <Truck className="w-5 h-5" />;
         case StatusEnum.Delivered:
-            return <CheckCircle2 className="w-4 h-4" />;
+            return <CheckCircle className="w-5 h-5" />;
+        case StatusEnum.Completed:
+            return <CheckCircle className="w-5 h-5" />;
+        case StatusEnum.Disputed:
+            return <AlertCircle className="w-5 h-5" />;
         case StatusEnum.Canceled:
-            return <XCircle className="w-4 h-4" />;
+            return <XCircle className="w-5 h-5" />;
         default:
-            return <AlertCircle className="w-4 h-4" />;
+            return <Package className="w-5 h-5" />;
     }
 };
 
-const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`Copied ${label} to clipboard`);
+const getStatusColor = (status: StatusEnum) => {
+    switch (status) {
+        case StatusEnum.Pending:
+            return "bg-blue-500 text-white";
+        case StatusEnum.WarehouseConfirmed:
+            return "bg-orange-500 text-white";
+        case StatusEnum.QualityApproved:
+            return "bg-purple-500 text-white";
+        case StatusEnum.InTransit:
+            return "bg-yellow-500 text-black";
+        case StatusEnum.Delivered:
+            return "bg-green-500 text-white";
+        case StatusEnum.Completed:
+            return "bg-green-600 text-white";
+        case StatusEnum.Disputed:
+            return "bg-red-500 text-white";
+        case StatusEnum.Canceled:
+            return "bg-gray-500 text-white";
+        default:
+            return "bg-gray-400 text-white";
+    }
 };
 
-export function TrackShipment() {
+const getProgressValue = (status: StatusEnum) => {
+    switch (status) {
+        case StatusEnum.Pending:
+            return 10;
+        case StatusEnum.WarehouseConfirmed:
+            return 25;
+        case StatusEnum.QualityApproved:
+            return 50;
+        case StatusEnum.InTransit:
+            return 75;
+        case StatusEnum.Delivered:
+        case StatusEnum.Completed:
+            return 100;
+        case StatusEnum.Disputed:
+        case StatusEnum.Canceled:
+            return 0;
+        default:
+            return 0;
+    }
+};
+
+const getEventIcon = (eventType: string) => {
+    const lowerEventType = eventType.toLowerCase();
+    if (lowerEventType.includes("warehouse")) return <Building2 className="w-4 h-4" />;
+    if (lowerEventType.includes("quality")) return <ShieldCheck className="w-4 h-4" />;
+    if (lowerEventType.includes("transit")) return <Truck className="w-4 h-4" />;
+    if (lowerEventType.includes("delivery")) return <CheckCircle className="w-4 h-4" />;
+    if (lowerEventType.includes("location")) return <MapPin className="w-4 h-4" />;
+    return <Activity className="w-4 h-4" />;
+};
+
+const getEventColor = (eventType: string) => {
+    const lowerEventType = eventType.toLowerCase();
+    if (lowerEventType.includes("warehouse")) return "border-orange-200 bg-orange-50";
+    if (lowerEventType.includes("quality")) return "border-purple-200 bg-purple-50";
+    if (lowerEventType.includes("transit")) return "border-yellow-200 bg-yellow-50";
+    if (lowerEventType.includes("delivery")) return "border-green-200 bg-green-50";
+    if (lowerEventType.includes("location")) return "border-blue-200 bg-blue-50";
+    return "border-gray-200 bg-gray-50";
+};
+
+export function TrackShipmentAnimated() {
     const [shipmentCode, setShipmentCode] = useState("");
-    const [searchCode, setSearchCode] = useState("");
+    const { shipment, isLoading: shipmentLoading, refetch: refetchShipment } = useGetShipment(shipmentCode);
+    const { events, refetch: refetchEvents } = useGetShipmentEvents(shipmentCode);
 
-    const { shipment, isLoading: isLoadingShipment, refetch: refetchShipment } = useGetShipment(searchCode);
-    const { events, isLoading: isLoadingEvents, refetch: refetchEvents } = useGetShipmentEvents(searchCode);
+    // Event hooks
+    const { addShipmentEvent, isPending: isAddingEvent } = useAddShipmentEvent();
+    const { addTransitEvent } = useAddTransitEvent();
+    const { addWarehouseEvent } = useAddWarehouseEvent();
+    const { addQualityEvent } = useAddQualityEvent();
+    const { updateLocation, isPending: isUpdatingLocation } = useUpdateLocation();
 
-    const handleSearch = () => {
-        if (shipmentCode.trim()) {
-            setSearchCode(shipmentCode.trim());
-        }
-    };
+    const trackingForm = useForm<TrackingFormData>({
+        resolver: zodResolver(trackingSchema),
+        defaultValues: { shipmentCode: "" },
+    });
 
-    const handleRefresh = () => {
+    const eventForm = useForm<EventFormData>({
+        resolver: zodResolver(eventSchema),
+        defaultValues: { shipmentCode: "", location: "", eventType: "" },
+    });
+
+    const transitEventForm = useForm<TransitEventFormData>({
+        resolver: zodResolver(transitEventSchema),
+        defaultValues: { shipmentCode: "", location: "", note: "" },
+    });
+
+    const warehouseEventForm = useForm<SimpleEventFormData>({
+        resolver: zodResolver(simpleEventSchema),
+        defaultValues: { shipmentCode: "", eventType: "" },
+    });
+
+    const qualityEventForm = useForm<SimpleEventFormData>({
+        resolver: zodResolver(simpleEventSchema),
+        defaultValues: { shipmentCode: "", eventType: "" },
+    });
+
+    const locationForm = useForm<LocationUpdateFormData>({
+        resolver: zodResolver(locationUpdateSchema),
+        defaultValues: { shipmentCode: "", location: "" },
+    });
+
+    const onSearch = (data: TrackingFormData) => {
+        setShipmentCode(data.shipmentCode);
         refetchShipment();
         refetchEvents();
     };
 
+    const onAddShipmentEvent = async (data: EventFormData) => {
+        try {
+            await addShipmentEvent(data.shipmentCode, data.location, data.eventType);
+            toast.success("Event added successfully!");
+            eventForm.reset();
+            refetchEvents();
+        } catch {
+            toast.error("Failed to add event");
+        }
+    };
+
+    const onAddTransitEvent = async (data: TransitEventFormData) => {
+        try {
+            await addTransitEvent(data.shipmentCode, data.location, data.note);
+            toast.success("Transit event added successfully!");
+            transitEventForm.reset();
+            refetchEvents();
+        } catch {
+            toast.error("Failed to add transit event");
+        }
+    };
+
+    const onAddWarehouseEvent = async (data: SimpleEventFormData) => {
+        try {
+            await addWarehouseEvent(data.shipmentCode, data.eventType);
+            toast.success("Warehouse event added successfully!");
+            warehouseEventForm.reset();
+            refetchEvents();
+        } catch {
+            toast.error("Failed to add warehouse event");
+        }
+    };
+
+    const onAddQualityEvent = async (data: SimpleEventFormData) => {
+        try {
+            await addQualityEvent(data.shipmentCode, data.eventType);
+            toast.success("Quality event added successfully!");
+            qualityEventForm.reset();
+            refetchEvents();
+        } catch {
+            toast.error("Failed to add quality event");
+        }
+    };
+
+    const onUpdateLocation = async (data: LocationUpdateFormData) => {
+        try {
+            await updateLocation(data.shipmentCode, data.location);
+            toast.success("Location updated successfully!");
+            locationForm.reset();
+            refetchShipment();
+        } catch {
+            toast.error("Failed to update location");
+        }
+    };
+
     return (
-        <div className="space-y-8">
-            {/* Enhanced Search Section */}
-            <Card className="border-2 shadow-lg">
-                <CardHeader className="pb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <Search className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-2xl">Track Shipment</CardTitle>
-                            <CardDescription className="text-base mt-1">
-                                Enter shipment code to view detailed information and track journey
-                            </CardDescription>
-                        </div>
-                    </div>
+        <div className="space-y-6 max-w-6xl mx-auto p-4">
+            {/* Search Section */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Search className="w-5 h-5" />
+                        Track Your Shipment
+                    </CardTitle>
+                    <CardDescription>
+                        Enter your shipment code to track its progress and view detailed information
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex gap-3">
-                        <Input
-                            placeholder="Enter shipment code (e.g. SH-2025-001)"
-                            value={shipmentCode}
-                            onChange={(e) => setShipmentCode(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                            className="h-12 text-base"
-                        />
-                        <Button
-                            onClick={handleSearch}
-                            disabled={!shipmentCode.trim()}
-                            className="h-12 px-8 text-base font-semibold"
-                        >
-                            <Search className="w-4 h-4 mr-2" />
-                            Tra cứu
-                        </Button>
-                    </div>
-                    {searchCode && !shipment && !isLoadingShipment && (
-                        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                            <p className="text-red-700 dark:text-red-300 text-sm">
-                                <AlertCircle className="w-4 h-4 inline mr-1" />
-                                Shipment not found with code: <strong>{searchCode}</strong>
-                            </p>
-                        </div>
-                    )}
+                    <Form {...trackingForm}>
+                        <form onSubmit={trackingForm.handleSubmit(onSearch)} className="flex gap-4">
+                            <FormField
+                                control={trackingForm.control}
+                                name="shipmentCode"
+                                render={({ field }) => (
+                                    <FormItem className="flex-1">
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Enter shipment code (e.g. SHIP0001)"
+                                                {...field}
+                                                className="text-lg"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" size="lg" disabled={shipmentLoading}>
+                                {shipmentLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Search className="w-4 h-4" />
+                                )}
+                                Track
+                            </Button>
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
 
-            {/* Loading State */}
-            {searchCode && isLoadingShipment && (
-                <Card>
-                    <CardContent className="p-8">
-                        <div className="text-center">
-                            <RefreshCw className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-                            <p className="text-lg font-medium">Loading shipment information...</p>
-                            <p className="text-sm text-muted-foreground">Vui lòng chờ trong giây lát</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Enhanced Shipment Details */}
-            {searchCode && shipment && (
-                <div className="space-y-6">
-                    {/* Status Overview */}
-                    <Card className="border-2 shadow-lg">
-                        <CardHeader className="pb-4">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="flex items-center gap-3 text-2xl">
-                                        <Package className="h-6 w-6 text-primary" />
-                                        Shipment: {shipment.shipmentCode}
-                                    </CardTitle>
-                                    <CardDescription className="text-base mt-2">
-                                        Created at: {format(new Date(Number(shipment.createdAt) * 1000), 'PPpp', { locale: vi })}
-                                    </CardDescription>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Badge className={`${getStatusColor(shipment.currentStatus)} text-white px-4 py-2 text-base font-medium`}>
-                                        {getStatusIcon(shipment.currentStatus)}
-                                        <span className="ml-2">{getStatusText(shipment.currentStatus)}</span>
-                                    </Badge>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleRefresh}
-                                        className="h-10"
-                                    >
-                                        <RefreshCw className="w-4 h-4 mr-2" />
-                                        Làm mới
-                                    </Button>
-                                </div>
+            {/* Shipment Info Section */}
+            {shipment && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Main Shipment Info */}
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Package className="w-5 h-5" />
+                                    Shipment #{shipment.shipmentCode}
+                                </CardTitle>
+                                <Badge className={`${getStatusColor(shipment.currentStatus)} flex items-center gap-1`}>
+                                    {getStatusIcon(shipment.currentStatus)}
+                                    {getStatusText(shipment.currentStatus)}
+                                </Badge>
                             </div>
                         </CardHeader>
-
-                        <CardContent>
+                        <CardContent className="space-y-6">
                             {/* Progress Bar */}
-                            <div className="mb-8">
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm font-medium">Tiến độ vận chuyển</span>
-                                    <span className="text-sm text-muted-foreground">
-                                        {shipment.currentStatus === StatusEnum.Pending && "0%"}
-                                        {shipment.currentStatus === StatusEnum.InTransit && "50%"}
-                                        {shipment.currentStatus === StatusEnum.Delivered && "100%"}
-                                        {shipment.currentStatus === StatusEnum.Canceled && "Canceled"}
-                                    </span>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm text-muted-foreground">
+                                    <span>Progress</span>
+                                    <span>{getProgressValue(shipment.currentStatus)}%</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-3">
-                                    <div
-                                        className={`h-3 rounded-full transition-all duration-500 ${shipment.currentStatus === StatusEnum.Pending ? 'w-1/4 bg-blue-500' :
-                                            shipment.currentStatus === StatusEnum.InTransit ? 'w-3/4 bg-yellow-500' :
-                                                shipment.currentStatus === StatusEnum.Delivered ? 'w-full bg-green-500' :
-                                                    'w-0 bg-red-500'
-                                            }`}>
+                                <Progress
+                                    value={getProgressValue(shipment.currentStatus)}
+                                    className="h-2"
+                                />
+                            </div>
+
+                            {/* Shipment Details Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Package className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-medium">Product:</span>
+                                        <span>{shipment.productName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-medium">Origin:</span>
+                                        <span>{shipment.origin}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-medium">Destination:</span>
+                                        <span>{shipment.destination}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Truck className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-medium">Carrier:</span>
+                                        <span className="font-mono text-sm">{shipment.carrier}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-medium">Created:</span>
+                                        <span>{new Date(Number(shipment.createdAt) * 1000).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">Deposit:</span>
+                                        <span>{formatEther(shipment.depositAmount)} ETH</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Shipment Information Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                {/* Product Information */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold border-b pb-2">Product Information</h3>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                                            <Package className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Product Name</p>
-                                                <p className="text-base font-medium mt-1">{shipment.productName}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                                                <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Origin</p>
-                                                    <p className="text-base font-medium mt-1">{shipment.origin}</p>
+                            {/* Actors Info */}
+                            {(shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" ||
+                                shipment.qualityInspector !== "0x0000000000000000000000000000000000000000") && (
+                                    <div className="border rounded-lg p-4 bg-muted/50">
+                                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                                            <Building2 className="w-4 h-4" />
+                                            Assigned Actors
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                            {shipment.warehouseManager !== "0x0000000000000000000000000000000000000000" && (
+                                                <div>
+                                                    <span className="font-medium">Warehouse Manager:</span>
+                                                    <div className="font-mono text-xs break-all">{shipment.warehouseManager}</div>
                                                 </div>
-                                            </div>
-
-                                            <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                                                <MapPin className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Destination</p>
-                                                    <p className="text-base font-medium mt-1">{shipment.destination}</p>
+                                            )}
+                                            {shipment.qualityInspector !== "0x0000000000000000000000000000000000000000" && (
+                                                <div>
+                                                    <span className="font-medium">Quality Inspector:</span>
+                                                    <div className="font-mono text-xs break-all">{shipment.qualityInspector}</div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* Blockchain Information */}
-                                <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold border-b pb-2">Thông tin blockchain</h3>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                                            <User className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Creator</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-sm font-mono bg-background p-2 rounded border flex-1 truncate">
-                                                        {shipment.creator}
-                                                    </p>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => copyToClipboard(shipment.creator, "creator address")}
-                                                    >
-                                                        <Copy className="w-3 h-3" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                                            <Truck className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Carrier</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-sm font-mono bg-background p-2 rounded border flex-1 truncate">
-                                                        {shipment.carrier}
-                                                    </p>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => copyToClipboard(shipment.carrier, "carrier address")}
-                                                    >
-                                                        <Copy className="w-3 h-3" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                )}
                         </CardContent>
                     </Card>
-
-                    {/* Escrow Status */}
-                    <EscrowStatus shipmentCode={shipment.shipmentCode} />
-
-                    {/* Enhanced Shipment Events Timeline */}
-                    {isLoadingEvents ? (
-                        <Card>
-                            <CardContent className="p-8">
-                                <div className="text-center">
-                                    <RefreshCw className="w-6 h-6 animate-spin text-primary mx-auto mb-4" />
-                                    <p className="text-lg font-medium">Loading shipping history...</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : events && events.length > 0 ? (
-                        <Card className="border-2 shadow-lg">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-3 text-xl">
-                                    <Calendar className="h-6 w-6 text-primary" />
-                                    Shipping History
-                                </CardTitle>
-                                <CardDescription>
-                                    Timeline chi tiết các sự kiện trong quá trình vận chuyển
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-6">
-                                    {events.map((event, index) => (
-                                        <div key={index} className="flex gap-4 relative">
-                                            {/* Timeline dot and line */}
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-4 h-4 bg-primary rounded-full border-4 border-background shadow-lg z-10"></div>
-                                                {index < events.length - 1 && (
-                                                    <div className="w-px h-16 bg-border mt-2"></div>
-                                                )}
-                                            </div>
-
-                                            {/* Event content */}
-                                            <div className="flex-1 pb-8">
-                                                <div className="bg-muted/30 rounded-lg p-4 border">
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <h4 className="font-semibold text-base">{event.eventType}</h4>
-                                                        <div className="text-right">
-                                                            <div className="text-sm font-medium">
-                                                                {format(new Date(Number(event.timestamp) * 1000), 'dd/MM/yyyy', { locale: vi })}
-                                                            </div>
-                                                            <div className="text-xs text-muted-foreground">
-                                                                {format(new Date(Number(event.timestamp) * 1000), 'HH:mm:ss', { locale: vi })}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                                                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                                                        <span className="text-sm">{event.location}</span>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                            <User className="w-3 h-3" />
-                                                            <span>Updated by:</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs font-mono bg-background px-2 py-1 rounded border">
-                                                                {event.updatedBy.slice(0, 6)}...{event.updatedBy.slice(-4)}
-                                                            </span>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                className="h-6 w-6 p-0"
-                                                                onClick={() => copyToClipboard(event.updatedBy, "updater address")}
-                                                            >
-                                                                <Copy className="w-3 h-3" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : searchCode && shipment && (
-                        <Card>
-                            <CardContent className="p-8">
-                                <div className="text-center">
-                                    <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                    <p className="text-lg font-medium mb-2">Chưa có sự kiện nào</p>
-                                    <p className="text-muted-foreground">
-                                        No events have been recorded for this shipment yet. Please check again later.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
             )}
 
-            {/* Quick Tips */}
-            {!searchCode && (
-                <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-                    <CardContent className="p-6">
-                        <h3 className="font-semibold mb-4 flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5 text-primary" />
-                            Mẹo sử dụng
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-start gap-2">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                                <span>Shipment codes usually follow the format: SH-2025-XXX</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                                <span>Real-time information updates from blockchain</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                                <span>Click &ldquo;Refresh&rdquo; to update the latest information</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                                <span>You can copy wallet addresses by clicking the copy icon</span>
-                            </div>
+            {/* Events Timeline */}
+            {events && events.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Activity className="w-5 h-5" />
+                            Shipment Timeline
+                        </CardTitle>
+                        <CardDescription>
+                            Detailed tracking events for this shipment
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {events.map((event, index) => (
+                                <div key={index} className={`border rounded-lg p-4 ${getEventColor(event.eventType)}`}>
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-1">
+                                            {getEventIcon(event.eventType)}
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-medium">{event.eventType}</h4>
+                                                <span className="text-sm text-muted-foreground">
+                                                    {new Date(Number(event.timestamp) * 1000).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            {event.location && (
+                                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                    <MapPin className="w-3 h-3" />
+                                                    {event.location}
+                                                </div>
+                                            )}
+                                            <div className="text-sm text-muted-foreground font-mono">
+                                                By: {event.updatedBy}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {/* Event Management Section (for actors) */}
+            {shipment && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Add General Event */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Plus className="w-4 h-4" />
+                                Add Event
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Form {...eventForm}>
+                                <form onSubmit={eventForm.handleSubmit(onAddShipmentEvent)} className="space-y-4">
+                                    <FormField
+                                        control={eventForm.control}
+                                        name="shipmentCode"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Shipment Code</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="SHIP0001" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={eventForm.control}
+                                        name="location"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Location</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="Current location" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={eventForm.control}
+                                        name="eventType"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Event Type</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="Event description" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="submit" className="w-full" disabled={isAddingEvent}>
+                                        {isAddingEvent ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Event"}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+
+                    {/* Update Location */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                Update Location
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Form {...locationForm}>
+                                <form onSubmit={locationForm.handleSubmit(onUpdateLocation)} className="space-y-4">
+                                    <FormField
+                                        control={locationForm.control}
+                                        name="shipmentCode"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Shipment Code</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="SHIP0001" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={locationForm.control}
+                                        name="location"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>New Location</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="Updated location" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="submit" className="w-full" disabled={isUpdatingLocation}>
+                                        {isUpdatingLocation ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Location"}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+                </div>
             )}
         </div>
     );

@@ -8,20 +8,23 @@ export const LOGISTICS_ABI = logisticsAbi;
 
 export enum StatusEnum {
   Pending = 0,
-  InTransit = 1,
-  Delivered = 2,
-  Canceled = 3,
+  WarehouseConfirmed = 1, 
+  QualityApproved = 2,
+  InTransit = 3,
+  Delivered = 4,
+  Completed = 5,
+  Disputed = 6,
+  Canceled = 7,
 }
 
-// Enum cho Escrow State
-export enum EscrowState {
-  Deposited = 0,
-  Released = 1,
-  Refunded = 2,
-  Disputed = 3,
+// Enum cho confirmation types
+export enum ConfirmationType {
+  WarehouseReceived = 0,
+  QualityInspected = 1,
+  DeliveryConfirmed = 2,
 }
 
-// Types cho Shipment
+// Types cho Shipment (based on new ABI)
 export interface Shipment {
   shipmentCode: string;
   productName: string;
@@ -30,13 +33,15 @@ export interface Shipment {
   currentStatus: StatusEnum;
   creator: string;
   carrier: string;
+  warehouseManager: string;
+  qualityInspector: string;
   createdAt: bigint;
   depositAmount: bigint;
-  escrowState: EscrowState;
-  deadline: bigint;
-  rated: boolean;
+  shippingFee: bigint;
+  flags: number;
   rating: number;
   feedback: string;
+  disputeReason: string;
 }
 
 // Types cho Shipment Event
@@ -62,36 +67,57 @@ export interface CarrierStats {
   ratingCount: bigint;
 }
 
-// Form types
+// Additional utility types for the new contract functions
+export interface ShipmentSummary {
+  code: string;
+  status: StatusEnum;
+  rating: number;
+  hasDispute: boolean;
+  isCompleted: boolean;
+}
+
+export interface ContractPermissions {
+  isAdmin: boolean;
+  isAuthorizedInspector: boolean;
+  isAuthorizedWarehouseManager: boolean;
+}
+
+export interface DisputeInfo {
+  hasDispute: boolean;
+  disputeReason: string;
+  canResolve: boolean;
+}
+
+// Form types for the new contract functions
 export interface CreateShipmentForm {
   shipmentCode: string;
   productName: string;
   origin: string;
   destination: string;
   carrier: string;
-  deadline: number; // Timestamp cho deadline
-  depositAmount?: string; // Số Ether để deposit (optional)
+  shippingFee: string; // Wei amount for shipping fee
 }
 
-export interface AddEventForm {
+export interface UpdateShipmentForm {
   shipmentCode: string;
   location: string;
-  eventType: string;
-}
-
-export interface UpdateStatusForm {
-  shipmentCode: string;
   newStatus: StatusEnum;
-  note?: string;
 }
 
-export interface RateCarrierForm {
+export interface RateOrDisputeForm {
   shipmentCode: string;
   rating: number;
   feedback: string;
+  isDispute: boolean;
 }
 
-export interface UpdateStatusForm {
+export interface SetActorsForm {
   shipmentCode: string;
-  newStatus: StatusEnum;
+  manager: string;
+  inspector: string;
+}
+
+export interface ConfirmForm {
+  shipmentCode: string;
+  isWarehouse: boolean;
 }
